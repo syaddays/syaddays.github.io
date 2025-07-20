@@ -1,1 +1,725 @@
-Hello World
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syad Safi - Desktop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000;
+            background-image: url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2071&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            color: #e5e5e5;
+            height: 100vh;
+            overflow: hidden;
+        }
+        body.dragging, body.dragging * {
+            user-select: none;
+        }
+        #desktop {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            padding-top: 28px;
+        }
+        #menu-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 28px;
+            background-color: rgba(25, 25, 25, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            font-size: 0.875rem;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .menu-bar-section { display: flex; align-items: center; gap: 1.5rem; }
+        .menu-bar-item { cursor: pointer; font-weight: 500; }
+        .menu-bar-item:hover { opacity: 0.8; }
+        .window {
+            position: absolute;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            background-color: rgba(25, 25, 25, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: none;
+            resize: both;
+            overflow: hidden;
+            min-width: 350px;
+            transition: width 0.3s ease, height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+        }
+        .window.minimized { opacity: 0; transform: scale(0.8); pointer-events: none; }
+        .window.active { display: flex; flex-direction: column; }
+        .title-bar {
+            height: 36px;
+            background-color: rgba(45, 45, 45, 0.7);
+            display: flex;
+            align-items: center;
+            padding: 0 0.75rem;
+            cursor: grab;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+        .title-bar:active { cursor: grabbing; }
+        .title-bar-buttons { display: flex; gap: 0.5rem; }
+        .title-bar-button { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.2); cursor: pointer; }
+        .close { background-color: #ff5f57; }
+        .minimize { background-color: #ffbd2e; }
+        .maximize { background-color: #28c940; }
+        .window-title { font-weight: 600; color: #f5f5f5; margin: 0 auto; }
+        .window-body { flex-grow: 1; overflow-y: auto; }
+        
+        #dock {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 70px;
+            background-color: rgba(25, 25, 25, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1.25rem;
+            display: flex;
+            align-items: center;
+            padding: 0 0.75rem;
+            gap: 0.75rem;
+            z-index: 9999;
+        }
+        .dock-icon {
+            width: 52px;
+            height: 52px;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), margin 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+        }
+        #dock:hover .dock-icon:hover { 
+            transform: scale(1.5) translateY(-10px); 
+            margin: 0 0.5rem; 
+            box-shadow: 0 20px 30px -10px rgba(0,0,0,0.3);
+        }
+        #dock:hover .dock-icon:hover + .dock-icon, .dock-icon:has(+ .dock-icon:hover) { 
+            transform: scale(1.2) translateY(-5px); 
+            margin: 0 0.25rem; 
+        }
+        .active-dot { position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: #fff; border-radius: 50%; display: none; }
+        .dock-icon.app-open .active-dot { display: block; }
+
+        .dock-tooltip {
+            position: absolute;
+            bottom: 85px;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background-color: rgba(25, 25, 25, 0.8);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 10000;
+        }
+        .dock-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(25, 25, 25, 0.8) transparent transparent transparent;
+        }
+        #dock:hover .dock-icon:hover .dock-tooltip {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .projects-body { display: flex; flex-direction: column; height: 100%; padding: 0; }
+        #project-list-container { flex-grow: 1; display: flex; }
+        #project-list { width: 280px; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.15); overflow-y: auto; padding: 0.5rem; background-color: rgba(0,0,0,0.1); }
+        .project-list-item { cursor: pointer; padding: 0.75rem; border-radius: 0.5rem; }
+        .project-list-item.selected, .project-list-item:hover { background-color: rgba(255,255,255,0.1); }
+        #project-display { flex-grow: 1; overflow-y: auto; }
+        .tech-tag { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; line-height: 1; }
+        
+        .readme-content h1, .readme-content h2, .readme-content h3 { font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 0.5rem; margin-top: 1.5rem; margin-bottom: 1rem; }
+        .readme-content h1 { font-size: 1.75rem; }
+        .readme-content h2 { font-size: 1.25rem; }
+        .readme-content h3 { font-size: 1.1rem; }
+        .readme-content p, .readme-content ul, .readme-content ol { margin-bottom: 1rem; color: #ccc; line-height: 1.6; }
+        .readme-content a { color: #60a5fa; text-decoration: underline; }
+        .readme-content ul, .readme-content ol { list-style-position: inside; }
+        .readme-content ul { list-style-type: disc; }
+        .readme-content ol { list-style-type: decimal; }
+        .readme-content code { background-color: rgba(0,0,0,0.3); padding: 0.2em 0.4em; margin: 0; font-size: 85%; border-radius: 6px; }
+        .readme-content pre { background-color: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px; overflow-x: auto; }
+        .readme-content pre code { padding: 0; margin: 0; background: none; }
+
+        .about-body { display: flex; flex-direction: column; height: 100%; padding: 0; }
+        .about-tabs { display: flex; padding: 0.75rem 1rem 0; gap: 0.25rem; border-bottom: 1px solid rgba(255,255,255,0.15); background-color: rgba(45, 45, 45, 0.7); }
+        .about-tab { padding: 0.5rem 1rem; border-radius: 0.375rem 0.375rem 0 0; font-size: 0.875rem; font-weight: 500; cursor: pointer; color: #a0a0a0; border: 1px solid transparent; border-bottom: none; }
+        .about-tab.active { background-color: rgba(25, 25, 25, 0.75); color: #fff; border-color: rgba(255,255,255,0.15); }
+        .about-content { display: none; padding: 1.5rem; }
+        .about-content.active { display: block; }
+
+        /* AI Assistant Chat styles */
+        .chat-message.user { text-align: right; }
+        .chat-message.user p { background-color: #581c87; color: white; }
+        .chat-message.assistant p { background-color: rgba(55, 65, 81, 1); color: #e5e7eb; }
+        .chat-message p { max-width: 80%; padding: 0.75rem; border-radius: 0.75rem; display: inline-block; text-align: left; }
+        .prose-invert { --tw-prose-bullets: #9ca3af; }
+        #gemini-summary-content {
+             word-wrap: break-word;
+             overflow-wrap: break-word;
+        }
+
+        /* Responsive Styles */
+        @media screen and (max-width: 768px) {
+            body {
+                overflow: auto; /* Allow scrolling on mobile */
+            }
+            #desktop {
+                padding-top: 56px; /* Adjust for taller mobile menu bar */
+                height: auto;
+            }
+            #menu-bar {
+                height: 56px;
+                padding: 0 1rem;
+            }
+            .menu-bar-section #open-tabs {
+                display: none; /* Hide window tabs on mobile */
+            }
+             .menu-bar-section .font-bold {
+                font-size: 1.125rem;
+            }
+            #datetime {
+                font-size: 0.75rem;
+            }
+
+            .window {
+                position: relative !important; /* Override inline styles */
+                width: 100% !important;
+                height: calc(100vh - 56px - 70px) !important; /* Full height minus menu and dock */
+                top: 0 !important;
+                left: 0 !important;
+                border: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                resize: none !important;
+                display: none; /* Hide all windows by default */
+            }
+            .window.active {
+                display: flex !important; /* Show only the active window */
+            }
+            .title-bar {
+                display: none; /* Hide title bar on mobile */
+            }
+             #dock {
+                width: 100%;
+                bottom: 0;
+                left: 0;
+                transform: none;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                border-bottom: none;
+                justify-content: space-around;
+                height: 70px;
+            }
+            .dock-icon {
+                transform: none !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                width: 48px;
+                height: 48px;
+            }
+            #dock:hover .dock-icon:hover, 
+            #dock:hover .dock-icon:hover + .dock-icon, 
+            .dock-icon:has(+ .dock-icon:hover) {
+                transform: none !important;
+                margin: 0 !important;
+            }
+            .dock-tooltip {
+                display: none; /* No tooltips on mobile */
+            }
+            .active-dot {
+                bottom: 2px;
+            }
+            
+            /* Adjust project view for mobile */
+            .projects-body {
+                padding-bottom: 70px; /* Space for the dock */
+            }
+            #project-list-container {
+                flex-direction: column;
+            }
+            #project-list {
+                width: 100%;
+                flex-shrink: 1;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+                max-height: 40vh;
+            }
+            #project-display {
+                padding: 1rem;
+            }
+            .readme-content {
+                 padding: 1rem !important;
+            }
+             #gemini-controls {
+                padding: 1rem !important;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div id="menu-bar">
+        <div class="menu-bar-section">
+            <span class="font-bold">Syad Safi</span>
+            <div id="open-tabs" class="flex gap-4"></div>
+        </div>
+        <div id="datetime" class="ml-auto"></div>
+    </div>
+
+    <div id="desktop">
+        <!-- Windows -->
+        <div id="projects" class="window" style="width: 750px; height: 500px; top: 5%; left: 5%;"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">Projects</span></div><div class="window-body projects-body"><div id="project-list-container"><div id="project-list"></div><div id="project-display"></div></div></div></div>
+        <div id="about-syad" class="window" style="width: 500px; height: 350px; top: 10%; left: 45%;"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">About Syad</span></div><div class="window-body about-body"><div class="about-tabs"><button class="about-tab active" data-tab="about">About</button><button class="about-tab" data-tab="skills">Skills</button></div><div id="about-content" class="about-content active"><h2 class="font-bold text-2xl mb-4 text-gray-200">Syad Safi</h2><p class="text-sm text-gray-300 leading-relaxed">Hello! I'm a frontend developer from Pipraun, Bihar, with a passion for building clean, user-friendly, and performant web applications. I thrive on turning complex problems into simple, beautiful, and intuitive designs.</p></div><div id="skills-content" class="about-content"></div></div></div>
+        <div id="contact" class="window"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">Contact</span></div><div class="window-body p-6"><h2 class="font-bold text-xl mb-4">Get In Touch</h2><p class="text-sm text-gray-300">Have a project in mind or just want to connect? My inbox is always open.</p><a href="mailto:syadabduldg@gmail.com" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Send Email</a></div></div>
+        <div id="ai-assistant" class="window" style="width: 450px; height: 520px; top: 15%; left: 65%;"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">✨ AI Assistant</span></div><div class="window-body flex flex-col p-0"><div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-4"><div class="chat-message assistant"><p>Hello! I'm Syad's AI assistant. Feel free to ask me about his projects, skills, or experience.</p></div></div><div class="p-4 border-t border-white/10 bg-black/10"><div class="flex gap-2"><input type="text" id="chat-input" class="flex-grow bg-gray-900/50 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" placeholder="Ask a question..."><button id="chat-send" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg></button></div></div></div></div>
+    </div>
+    
+    <div id="dock"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const desktop = document.getElementById('desktop');
+            const dock = document.getElementById('dock');
+            const openTabsContainer = document.getElementById('open-tabs');
+            let highestZIndex = 10;
+            
+            const appData = {
+                'projects': { title: 'Projects', icon: 'https://placehold.co/128x128/4ade80/1e3a8a?text=P' },
+                'about-syad': { title: 'About Syad', icon: 'https://placehold.co/128x128/60a5fa/1e3a8a?text=A' },
+                'ai-assistant': { title: 'AI Assistant', icon: 'https://placehold.co/128x128/a78bfa/ffffff?text=✨' },
+                'contact': { title: 'Contact', icon: 'https://placehold.co/128x128/f87171/1e3a8a?text=@' },
+            };
+
+            const projectData = [
+                { id: 'project-1', title: 'Memory Card Game', icon: 'https://placehold.co/48x48/facc15/1e3a8a?text=M', github: 'https://github.com/syaddays/Memory-Card-Game', shortDesc: 'A modern, interactive memory card game.', tags: ['HTML', 'CSS', 'JavaScript'] },
+                { id: 'project-2', title: 'IPO Web App', icon: 'https://placehold.co/48x48/ef4444/ffffff?text=IPO', github: 'https://github.com/syaddays/ipo', shortDesc: 'A Django-based IPO tracking web app.', tags: ['Django', 'Bootstrap'] },
+                { id: 'project-3', title: 'SkillVault', icon: 'https://placehold.co/48x48/8b5cf6/ffffff?text=SV', github: 'https://github.com/syaddays/skillvault', shortDesc: 'A daily goal tracker built with React.', tags: ['React', 'TypeScript', 'Framer Motion'] },
+            ];
+            
+            const skillsData = {
+                Languages: [ { name: 'JavaScript', icon: 'https://placehold.co/48x48/f7df1e/000000?text=JS' }, { name: 'HTML5', icon: 'https://placehold.co/48x48/e34f26/ffffff?text=H5' }, { name: 'CSS3', icon: 'https://placehold.co/48x48/1572b6/ffffff?text=C3' } ],
+                Frameworks: [ { name: 'React', icon: 'https://placehold.co/48x48/61dafb/000000?text=R' }, { name: 'Next.js', icon: 'https://placehold.co/48x48/000000/ffffff?text=N' }, { name: 'Vue.js', icon: 'https://placehold.co/48x48/4fc08d/ffffff?text=V' } ],
+                Tools: [ { name: 'Git', icon: 'https://placehold.co/48x48/f05032/ffffff?text=G' }, { name: 'Firebase', icon: 'https://placehold.co/48x48/ffca28/000000?text=F' }, { name: 'TailwindCSS', icon: 'https://placehold.co/48x48/06b6d4/ffffff?text=T' } ]
+            };
+
+            function focusWindow(win) { 
+                if (window.innerWidth <= 768) return; // No z-index management on mobile
+                if (win) win.style.zIndex = ++highestZIndex; 
+            }
+
+            function openWindow(windowId) {
+                const win = document.getElementById(windowId);
+                if (win) {
+                    if (window.innerWidth <= 768) {
+                        // On mobile, hide all other windows and show the selected one
+                        document.querySelectorAll('.window').forEach(w => w.classList.remove('active'));
+                    }
+                    win.classList.add('active');
+                    win.classList.remove('minimized');
+                    updateMenuBar();
+                    updateDock();
+                    focusWindow(win);
+                }
+            }
+
+            function closeWindow(windowId) {
+                const win = document.getElementById(windowId);
+                if (win) {
+                    win.classList.remove('active');
+                    updateMenuBar();
+                    updateDock();
+                }
+            }
+            
+            function minimizeWindow(windowId) {
+                if (window.innerWidth <= 768) return; // No minimizing on mobile
+                const win = document.getElementById(windowId);
+                if (win) {
+                    win.classList.add('minimized');
+                    updateMenuBar();
+                }
+            }
+
+            function toggleMaximize(win) {
+                if (window.innerWidth <= 768) return; // No maximizing on mobile
+                if (win.dataset.isMaximized === 'true') {
+                    win.style.width = win.dataset.oldWidth; win.style.height = win.dataset.oldHeight; win.style.top = win.dataset.oldTop; win.style.left = win.dataset.oldLeft; win.dataset.isMaximized = 'false';
+                } else {
+                    win.dataset.oldWidth = win.style.width; win.dataset.oldHeight = win.style.height; win.dataset.oldTop = win.style.top; win.dataset.oldLeft = win.style.left;
+                    win.style.width = '90vw'; win.style.height = '85vh'; win.style.top = '5vh'; win.style.left = '5vw'; win.dataset.isMaximized = 'true';
+                }
+            }
+
+            document.querySelectorAll('.window').forEach(win => {
+                if (win.classList.contains('active')) focusWindow(win);
+                const titleBar = win.querySelector('.title-bar');
+                
+                // Only enable dragging on desktop
+                if (window.innerWidth > 768) {
+                    let isDragging = false, offsetX, offsetY;
+                    titleBar.addEventListener('mousedown', e => { 
+                        if (e.target.classList.contains('title-bar-button')) return;
+                        isDragging = true; 
+                        document.body.classList.add('dragging'); 
+                        focusWindow(win); 
+                        offsetX = e.clientX - win.offsetLeft; 
+                        offsetY = e.clientY - win.offsetTop; 
+                        titleBar.style.cursor = 'grabbing'; 
+                    });
+                    document.addEventListener('mousemove', e => { 
+                        if (isDragging) { 
+                            let newLeft = e.clientX - offsetX; 
+                            let newTop = e.clientY - offsetY; 
+                            const menuBarHeight = 28; 
+                            const visibleMargin = 50; 
+                            newTop = Math.max(menuBarHeight, newTop); 
+                            newTop = Math.min(window.innerHeight - visibleMargin, newTop); 
+                            newLeft = Math.max(-win.offsetWidth + visibleMargin, newLeft); 
+                            newLeft = Math.min(window.innerWidth - visibleMargin, newLeft); 
+                            win.style.left = `${newLeft}px`; 
+                            win.style.top = `${newTop}px`; 
+                        } 
+                    });
+                    document.addEventListener('mouseup', () => { 
+                        isDragging = false; 
+                        document.body.classList.remove('dragging'); 
+                        titleBar.style.cursor = 'grab'; 
+                    });
+                }
+                
+                win.querySelector('.close').addEventListener('click', e => { e.stopPropagation(); closeWindow(win.id); });
+                win.querySelector('.minimize').addEventListener('click', e => { e.stopPropagation(); minimizeWindow(win.id); });
+                win.querySelector('.maximize').addEventListener('click', e => { e.stopPropagation(); toggleMaximize(win); });
+                
+                win.addEventListener('mousedown', () => focusWindow(win));
+            });
+            
+            Object.keys(appData).forEach(appId => {
+                const app = appData[appId];
+                const dockIcon = document.createElement('div');
+                dockIcon.className = 'dock-icon';
+                dockIcon.dataset.window = appId;
+                dockIcon.innerHTML = `<span class="dock-tooltip">${app.title}</span><img src="${app.icon}" class="w-full h-full rounded-lg" alt="${app.title}"><div class="active-dot"></div>`;
+                dockIcon.addEventListener('click', () => {
+                    const win = document.getElementById(appId);
+                    if (win) {
+                        const isTopWindow = parseInt(win.style.zIndex) === highestZIndex && win.classList.contains('active') && !win.classList.contains('minimized');
+                        if (window.innerWidth > 768 && isTopWindow) {
+                            minimizeWindow(appId);
+                        } else {
+                            openWindow(appId);
+                        }
+                    }
+                });
+                dock.appendChild(dockIcon);
+            });
+            
+            const separator = document.createElement('div');
+            separator.className = 'h-3/5 w-px bg-white/20 mx-1';
+            dock.appendChild(separator);
+
+            const githubLink = document.createElement('a');
+            githubLink.href = 'https://github.com/syaddays';
+            githubLink.target = '_blank';
+            githubLink.className = 'dock-icon';
+            githubLink.innerHTML = `<span class="dock-tooltip">GitHub</span><div class="w-full h-full bg-black/50 rounded-lg flex items-center justify-center p-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.91 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.302 24 12 24 5.373 18.627 0 12 0z"/></svg></div>`;
+            dock.appendChild(githubLink);
+
+            const linkedinLink = document.createElement('a');
+            linkedinLink.href = 'https://www.linkedin.com/in/syad-safi/';
+            linkedinLink.target = '_blank';
+            linkedinLink.className = 'dock-icon';
+            linkedinLink.innerHTML = `<span class="dock-tooltip">LinkedIn</span><div class="w-full h-full bg-black/50 rounded-lg flex items-center justify-center p-2"><svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="white"><title>LinkedIn</title><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg></div>`;
+            dock.appendChild(linkedinLink);
+
+            const leetcodeLink = document.createElement('a');
+            leetcodeLink.href = 'https://leetcode.com/syaddays/';
+            leetcodeLink.target = '_blank';
+            leetcodeLink.className = 'dock-icon';
+            leetcodeLink.innerHTML = `<span class="dock-tooltip">LeetCode</span><div class="w-full h-full bg-black/50 rounded-lg flex items-center justify-center p-2.5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M13.483 0a1.5 1.5 0 00-1.5 1.5v15.25a1.5 1.5 0 001.5 1.5h7.767a1.5 1.5 0 001.5-1.5V1.5a1.5 1.5 0 00-1.5-1.5h-7.767zM15.75 15.5h-1.017v-1.625h1.017V15.5zM15.75 11.5h-1.017V9.875h1.017V11.5zM15.75 7.5h-1.017V5.875h1.017V7.5zM15.75 3.5h-1.017V1.875h1.017V3.5zM18.5 15.5h-1.017v-1.625h1.017V15.5zM18.5 11.5h-1.017V9.875h1.017V11.5zM18.5 7.5h-1.017V5.875h1.017V7.5zM18.5 3.5h-1.017V1.875h1.017V3.5zM21.25 15.5h-1.017v-1.625h1.017V15.5zM21.25 11.5h-1.017V9.875h1.017V11.5zM21.25 7.5h-1.017V5.875h1.017V7.5zM21.25 3.5h-1.017V1.875h1.017V3.5zM12 18.25V1.5a1.5 1.5 0 00-1.5-1.5H2.75a1.5 1.5 0 00-1.5 1.5v16.75a1.5 1.5 0 001.5 1.5h7.75a1.5 1.5 0 001.5-1.5zM9 14.25H3.5v-1.5H9v1.5zm0-4H3.5v-1.5H9v1.5zm0-4H3.5v-1.5H9v1.5z"/></svg></div>`;
+            dock.appendChild(leetcodeLink);
+
+            function updateMenuBar() {
+                openTabsContainer.innerHTML = '';
+                document.querySelectorAll('.window.active:not(.minimized)').forEach(win => {
+                    const title = win.querySelector('.window-title').textContent;
+                    const tab = document.createElement('span');
+                    tab.className = 'menu-bar-item';
+                    tab.textContent = title;
+                    tab.onclick = () => focusWindow(win);
+                    openTabsContainer.appendChild(tab);
+                });
+            }
+            
+            function updateDock() {
+                Object.keys(appData).forEach(appId => {
+                    const win = document.getElementById(appId);
+                    const dockIcon = document.querySelector(`.dock-icon[data-window="${appId}"]`);
+                    if (win && win.classList.contains('active')) {
+                        dockIcon.classList.add('app-open');
+                    } else {
+                        dockIcon.classList.remove('app-open');
+                    }
+                });
+            }
+
+            // --- Projects App Logic ---
+            const projectListContainer = document.getElementById('project-list');
+            const projectDisplayContainer = document.getElementById('project-display');
+
+            const tagColors = {
+                'React': 'bg-blue-900 text-blue-300', 'TypeScript': 'bg-sky-900 text-sky-300', 'Framer Motion': 'bg-pink-900 text-pink-300',
+                'HTML': 'bg-red-900 text-red-300', 'CSS': 'bg-indigo-900 text-indigo-300', 'JavaScript': 'bg-yellow-900 text-yellow-300',
+                'Django': 'bg-green-800 text-green-200', 'Bootstrap': 'bg-purple-900 text-purple-300',
+            };
+
+            async function displayProjectDetails(project) {
+                document.querySelectorAll('.project-list-item').forEach(item => {
+                    item.classList.toggle('selected', item.dataset.projectId === project.id);
+                });
+
+                projectDisplayContainer.innerHTML = `
+                    <div id="gemini-controls" class="p-4 border-b border-white/10 hidden">
+                        <button id="summarize-button" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                           ✨ Summarize Project
+                        </button>
+                        <div id="gemini-summary-container" class="mt-4 hidden">
+                             <div id="gemini-summary-content" class="p-4 bg-black/20 rounded-lg text-gray-300 border border-white/10 prose prose-sm prose-invert max-w-none"></div>
+                        </div>
+                    </div>
+                    <div id="readme-content-wrapper" class="readme-content p-6">
+                        <div class="flex justify-center items-center h-full"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400"></div></div>
+                    </div>`;
+
+                const readmeWrapper = projectDisplayContainer.querySelector('#readme-content-wrapper');
+                const geminiControls = projectDisplayContainer.querySelector('#gemini-controls');
+                const summarizeButton = projectDisplayContainer.querySelector('#summarize-button');
+                const summaryContainer = projectDisplayContainer.querySelector('#gemini-summary-container');
+                const summaryContent = projectDisplayContainer.querySelector('#gemini-summary-content');
+                let fullMarkdown = '';
+
+                summarizeButton.addEventListener('click', async () => {
+                    summaryContainer.style.display = 'block';
+                    summaryContent.innerHTML = '<p>✨ Thinking...</p>';
+                    summarizeButton.disabled = true;
+
+                    try {
+                        const prompt = `**System Instruction:** You are a technical writer AI. Your task is to analyze the following README.md file from a software project and generate a concise summary.
+
+**Formatting Rules:**
+- The entire output must be in Markdown.
+- Start with a brief, one-sentence overview of the project's purpose.
+- Follow with a bulleted list titled "**Key Features & Technologies:**".
+- Each bullet point should be short and to the point.
+- Do not add any conversational text, greetings, or closing remarks.
+
+**README Content:**
+---
+${fullMarkdown}`;
+                        
+                        let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                        const payload = { contents: chatHistory };
+                        const apiKey = "AIzaSyCJ3Kqbl-E6KOVvLDFn0M2TVzqWTtryp_E";
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                        
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+                        const result = await response.json();
+                        
+                        if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                            const summaryMarkdown = result.candidates[0].content.parts[0].text;
+                            summaryContent.innerHTML = marked.parse(summaryMarkdown);
+                        } else {
+                            throw new Error('Unexpected API response structure.');
+                        }
+                    } catch (error) {
+                        console.error('Gemini API error:', error);
+                        summaryContent.innerHTML = '<p class="text-red-400">Sorry, I couldn\'t generate a summary at this time.</p>';
+                    } finally {
+                        summarizeButton.disabled = false;
+                    }
+                });
+
+                try {
+                    const repoUrl = new URL(project.github);
+                    const rawUrl = `https://raw.githubusercontent.com${repoUrl.pathname}/main/README.md`;
+                    const response = await fetch(rawUrl);
+                    if (!response.ok) throw new Error(`Failed to fetch README: ${response.statusText}`);
+                    fullMarkdown = await response.text();
+                    readmeWrapper.innerHTML = marked.parse(fullMarkdown);
+                    geminiControls.style.display = 'block';
+                } catch (error) {
+                    console.error(error);
+                    readmeWrapper.innerHTML = `<div class="p-4 text-center text-gray-400">Could not load README. Please check the repository link or make sure the main branch has a README.md file.</div>`;
+                }
+            }
+
+            projectData.forEach(p => {
+                const entry = document.createElement('div');
+                entry.className = 'project-list-item';
+                entry.dataset.projectId = p.id;
+                const tagsHTML = p.tags.map(tag => `<span class="tech-tag ${tagColors[tag] || 'bg-gray-700 text-gray-300'}">${tag}</span>`).join('');
+                entry.innerHTML = `<div class="flex items-start gap-3"><img src="${p.icon}" class="w-10 h-10 rounded-md mt-1"><div><h3 class="font-semibold text-sm text-gray-200">${p.title}</h3><p class="text-xs text-gray-400 mb-2">${p.shortDesc}</p><div class="flex flex-wrap gap-1.5">${tagsHTML}</div></div></div>`;
+                entry.addEventListener('click', () => displayProjectDetails(p));
+                projectListContainer.appendChild(entry);
+            });
+            
+            if(projectData.length > 0) displayProjectDetails(projectData[0]);
+
+            // --- About App Logic ---
+            const aboutSyadWindow = document.getElementById('about-syad');
+            const skillsContentContainer = aboutSyadWindow.querySelector('#skills-content');
+            
+            function renderSkills() {
+                skillsContentContainer.innerHTML = `<div class="space-y-4">${Object.keys(skillsData).map(category => `<div><p class="text-sm font-semibold text-gray-300 mb-2 capitalize">${category}</p><div class="flex flex-wrap gap-4">${skillsData[category].map(skill => `<div class="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-md"><img src="${skill.icon}" class="w-5 h-5 rounded-sm"><span class="text-sm">${skill.name}</span></div>`).join('')}</div></div>`).join('')}</div>`;
+            }
+            renderSkills();
+
+            aboutSyadWindow.querySelector('.about-tabs').addEventListener('click', (e) => {
+                if(e.target.classList.contains('about-tab')) {
+                    const tabName = e.target.dataset.tab;
+                    aboutSyadWindow.querySelectorAll('.about-tab').forEach(t => t.classList.remove('active'));
+                    aboutSyadWindow.querySelectorAll('.about-content').forEach(c => c.classList.remove('active'));
+                    e.target.classList.add('active');
+                    aboutSyadWindow.querySelector(`#${tabName}-content`).classList.add('active');
+                }
+            });
+
+            // --- AI Assistant Logic ---
+            const chatMessages = document.getElementById('chat-messages');
+            const chatInput = document.getElementById('chat-input');
+            const chatSendButton = document.getElementById('chat-send');
+            let aiChatHistory = [];
+
+            const portfolioContext = `Syad Safi's Projects: ${JSON.stringify(projectData)}. Syad Safi's Skills: ${JSON.stringify(skillsData)}.`;
+
+            async function handleAIChat() {
+                const userMessage = chatInput.value.trim();
+                if (!userMessage) return;
+
+                appendChatMessage(userMessage, 'user');
+                chatInput.value = '';
+                chatSendButton.disabled = true;
+
+                appendChatMessage('...', 'assistant', true); // Typing indicator
+
+                try {
+                    const prompt = `You are a friendly and professional AI assistant for Syad Safi's portfolio. Your goal is to answer questions from visitors about his skills, projects, and experience. Be conversational and helpful. Use the provided context to answer questions accurately. If a question is outside the scope of the portfolio, politely decline to answer. \n\nCONTEXT:\n${portfolioContext}\n\nHISTORY:\n${aiChatHistory.map(m => `${m.role}: ${m.parts[0].text}`).join('\n')}\n\nUSER QUESTION: ${userMessage}`;
+
+                    const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+                    const apiKey = "AIzaSyCJ3Kqbl-E6KOVvLDFn0M2TVzqWTtryp_E";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+                    const result = await response.json();
+                    
+                    const assistantResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!assistantResponse) throw new Error('Invalid API response.');
+                    
+                    updateLastChatMessage(assistantResponse);
+                    aiChatHistory.push({role: 'user', parts: [{text: userMessage}]});
+                    aiChatHistory.push({role: 'model', parts: [{text: assistantResponse}]});
+
+                } catch (error) {
+                    console.error("AI Assistant Error:", error);
+                    updateLastChatMessage("I'm sorry, I encountered an error. Please try again later.");
+                } finally {
+                    chatSendButton.disabled = false;
+                }
+            }
+
+            function appendChatMessage(message, sender, isTyping = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message ${sender}`;
+                const p = document.createElement('p');
+                p.innerHTML = marked.parse(message);
+                if (isTyping) p.id = 'typing-indicator';
+                messageDiv.appendChild(p);
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function updateLastChatMessage(newMessage) {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.innerHTML = marked.parse(newMessage);
+                    typingIndicator.id = '';
+                }
+            }
+
+            chatSendButton.addEventListener('click', handleAIChat);
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleAIChat();
+            });
+
+            // --- General Setup ---
+            const datetimeElement = document.getElementById('datetime');
+            function updateDateTime() {
+                const now = new Date();
+                const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' };
+                datetimeElement.textContent = now.toLocaleString('en-US', options).replace(',', '');
+            }
+            setInterval(updateDateTime, 1000);
+            updateDateTime();
+            
+            // Initial setup based on screen size
+            if (window.innerWidth > 768) {
+                // Desktop: open default windows
+                openWindow('projects');
+                openWindow('about-syad');
+            } else {
+                // Mobile: open a single, default window
+                openWindow('about-syad');
+            }
+            
+            updateMenuBar();
+            updateDock();
+        });
+    </script>
+</body>
+</html>

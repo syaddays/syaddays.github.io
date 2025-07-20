@@ -1,0 +1,40 @@
+# This is a GitHub Actions workflow to automate deploying your portfolio to GitHub Pages.
+name: Deploy to GitHub Pages
+
+on:
+  # This workflow runs automatically every time you push a change to your 'main' branch.
+  # If your main branch is named something else (like 'master'), you should change it here.
+  push:
+    branches:
+      - main
+
+jobs:
+  # The 'deploy' job contains all the steps for the deployment process.
+  deploy:
+    # This job will run on the latest version of Ubuntu provided by GitHub.
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Check out your repository's code
+      # This action downloads your code so the workflow can access it.
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Find and replace the API key placeholder
+      # This is the crucial security step. It uses the 'sed' command to find the
+      # placeholder text "__GEMINI_API_KEY__" in your HTML file and replaces it
+      # with the actual secret key you stored in your repository's settings.
+      - name: Replace API Key
+        # IMPORTANT: This command assumes your main HTML file is named 'index.html'.
+        # If your file has a different name, you must change 'index.html' below to match it.
+        run: sed -i "s|__GEMINI_API_KEY__|${{ secrets.GEMINI_API_KEY }}|g" index.html
+
+      # Step 3: Deploy the modified code to GitHub Pages
+      # This action takes the files (now with the real API key) and pushes them
+      # to the 'gh-pages' branch, which automatically publishes your website.
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          # The GITHUB_TOKEN is a special secret automatically provided by GitHub Actions.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # This tells the action to publish the contents of the root directory.
+          publish_dir: ./

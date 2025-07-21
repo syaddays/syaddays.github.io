@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Syad Safi - Desktop</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23262626'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='60' font-weight='bold' fill='%23e5e5e5' font-family='Inter, sans-serif'%3ES%3C/text%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -703,7 +704,7 @@ ${fullMarkdown}`;
                     const prompt = `You are a friendly and professional AI assistant for Syad Safi's portfolio. Your goal is to answer questions from visitors about his skills, projects, and experience. Be conversational and helpful. Use the provided context to answer questions accurately. If a question is outside the scope of the portfolio, politely decline to answer. \n\nCONTEXT:\n${portfolioContext}\n\nHISTORY:\n${aiChatHistory.map(m => `${m.role}: ${m.parts[0].text}`).join('\n')}\n\nUSER QUESTION: ${userMessage}`;
 
                     const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-                    const apiKey = "__GEMINI_API_KEY__"; // Replace with "__GEMINI_API_KEY__" for deployment
+                    const apiKey = "AIzaSyCJ3Kqbl-E6KOVvLDFn0M2TVzqWTtryp_E"; // Replace with "__GEMINI_API_KEY__" for deployment
                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                     const response = await fetch(apiUrl, {

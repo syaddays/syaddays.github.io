@@ -82,7 +82,11 @@
         .minimize { background-color: #ffbd2e; }
         .maximize { background-color: #28c940; }
         .window-title { font-weight: 600; color: #f5f5f5; margin: 0 auto; }
-        .window-body { flex-grow: 1; overflow-y: auto; }
+        .window-body { 
+            flex-grow: 1; 
+            position: relative; 
+            overflow: hidden; 
+        }
         
         #dock {
             position: absolute;
@@ -152,12 +156,30 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        .projects-body { display: flex; flex-direction: column; height: 100%; padding: 0; }
-        #project-list-container { flex-grow: 1; display: flex; }
-        #project-list { width: 280px; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.15); overflow-y: auto; padding: 0.5rem; background-color: rgba(0,0,0,0.1); }
+        /* Project Window Specific Styles for Independent Scrolling */
+        .projects-body {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+        }
+        #project-list {
+            width: 280px;
+            flex-shrink: 0;
+            border-right: 1px solid rgba(255,255,255,0.15);
+            overflow-y: auto;
+            padding: 0.5rem;
+            background-color: rgba(0,0,0,0.1);
+        }
+        #project-display {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        
         .project-list-item { cursor: pointer; padding: 0.75rem; border-radius: 0.5rem; }
         .project-list-item.selected, .project-list-item:hover { background-color: rgba(255,255,255,0.1); }
-        #project-display { flex-grow: 1; overflow-y: auto; }
         .tech-tag { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; line-height: 1; }
         
         .readme-content h1, .readme-content h2, .readme-content h3 { font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 0.5rem; margin-top: 1.5rem; margin-bottom: 1rem; }
@@ -172,6 +194,11 @@
         .readme-content code { background-color: rgba(0,0,0,0.3); padding: 0.2em 0.4em; margin: 0; font-size: 85%; border-radius: 6px; }
         .readme-content pre { background-color: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px; overflow-x: auto; }
         .readme-content pre code { padding: 0; margin: 0; background: none; }
+
+        /* Styles for other windows that need scrolling */
+        #about-syad .window-body, #contact .window-body {
+            overflow-y: auto;
+        }
 
         .about-body { display: flex; flex-direction: column; height: 100%; padding: 0; }
         .about-tabs { display: flex; padding: 0.75rem 1rem 0; gap: 0.25rem; border-bottom: 1px solid rgba(255,255,255,0.15); background-color: rgba(45, 45, 45, 0.7); }
@@ -266,10 +293,9 @@
             
             /* Adjust project view for mobile */
             .projects-body {
-                padding-bottom: 70px; /* Space for the dock */
-            }
-            #project-list-container {
+                position: static; /* Override absolute positioning on mobile */
                 flex-direction: column;
+                padding-bottom: 70px; /* Space for the dock */
             }
             #project-list {
                 width: 100%;
@@ -302,8 +328,8 @@
 
     <div id="desktop">
         <!-- Windows -->
-        <div id="projects" class="window" style="width: 750px; height: 500px; top: 5%; left: 5%;"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">Projects</span></div><div class="window-body projects-body"><div id="project-list-container"><div id="project-list"></div><div id="project-display"></div></div></div></div>
-        <div id="about-syad" class="window" style="width: 500px; height: 350px; top: 10%; left: 45%;"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">About Syad</span></div><div class="window-body about-body"><div class="about-tabs"><button class="about-tab active" data-tab="about">About</button><button class="about-tab" data-tab="skills">Skills</button></div><div id="about-content" class="about-content active"><h2 class="font-bold text-2xl mb-4 text-gray-200">Syad Safi</h2><p class="text-sm text-gray-300 leading-relaxed">Hello! I'm a frontend developer from Pipraun, Bihar, with a passion for building clean, user-friendly, and performant web applications. I thrive on turning complex problems into simple, beautiful, and intuitive designs.</p></div><div id="skills-content" class="about-content"></div></div></div>
+        <div id="projects" class="window" style="width: 750px; height: 500px; top: 5%; left: 5%;"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">Projects</span></div><div class="window-body"><div class="projects-body"><div id="project-list"></div><div id="project-display"></div></div></div></div>
+        <div id="about-syad" class="window" style="width: 500px; height: 400px; top: 10%; left: 45%;"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">About Syad</span></div><div class="window-body"><div class="about-body"><div class="about-tabs"><button class="about-tab active" data-tab="about">About</button><button class="about-tab" data-tab="skills">Skills</button><button class="about-tab" data-tab="publications">Publications</button></div><div id="about-content" class="about-content active"><h2 class="font-bold text-2xl mb-4 text-gray-200">Syad Safi</h2><p class="text-sm text-gray-300 leading-relaxed">Hello! I'm a frontend developer from Pipraun, Bihar, with a passion for building clean, user-friendly, and performant web applications. I thrive on turning complex problems into simple, beautiful, and intuitive designs.</p></div><div id="skills-content" class="about-content"></div><div id="publications-content" class="about-content space-y-4"><a href="https://ijsrem.com/download/student-faculty-hub-using-mern-stack/" target="_blank" class="block bg-black/20 p-4 rounded-lg hover:bg-black/40 transition-colors"><h3 class="font-semibold text-gray-200">Student-Faculty Hub Using MERN Stack</h3><p class="text-xs text-gray-400 mt-1 mb-2">A centralized hub for students and faculty to reduce distractions and improve access to academic resources.</p><div class="flex flex-wrap gap-1.5"><span class="tech-tag bg-green-800 text-green-200">MERN</span><span class="tech-tag bg-blue-900 text-blue-300">React</span><span class="tech-tag bg-gray-700 text-gray-300">Node.js</span></div></a><a href="https://ijsrem.com/download/network-attack-detection-using-long-short-term-memory-lstm/" target="_blank" class="block bg-black/20 p-4 rounded-lg hover:bg-black/40 transition-colors"><h3 class="font-semibold text-gray-200">Network Attack Detection Using LSTM</h3><p class="text-xs text-gray-400 mt-1 mb-2">A deep learning model leveraging LSTM neural networks to detect and classify various network cyber attacks.</p><div class="flex flex-wrap gap-1.5"><span class="tech-tag bg-rose-800 text-rose-200">Machine Learning</span><span class="tech-tag bg-blue-800 text-blue-200">Python</span><span class="tech-tag bg-purple-900 text-purple-300">LSTM</span></div></a></div></div></div></div>
         <div id="contact" class="window"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">Contact</span></div><div class="window-body p-6"><h2 class="font-bold text-xl mb-4">Get In Touch</h2><p class="text-sm text-gray-300">Have a project in mind or just want to connect? My inbox is always open.</p><a href="mailto:syadabduldg@gmail.com" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Send Email</a></div></div>
         <div id="ai-assistant" class="window" style="width: 450px; height: 520px; top: 15%; left: 65%;"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">✨ AI Assistant</span></div><div class="window-body flex flex-col p-0"><div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-4"><div class="chat-message assistant"><p>Hello! I'm Syad's AI assistant. Feel free to ask me about his projects, skills, or experience.</p></div></div><div class="p-4 border-t border-white/10 bg-black/10"><div class="flex gap-2"><input type="text" id="chat-input" class="flex-grow bg-gray-900/50 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" placeholder="Ask a question..."><button id="chat-send" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg></button></div></div></div></div>
     </div>
@@ -328,12 +354,40 @@
                 { id: 'project-1', title: 'Memory Card Game', icon: 'https://placehold.co/48x48/facc15/1e3a8a?text=M', github: 'https://github.com/syaddays/Memory-Card-Game', shortDesc: 'A modern, interactive memory card game.', tags: ['HTML', 'CSS', 'JavaScript'] },
                 { id: 'project-2', title: 'IPO Web App', icon: 'https://placehold.co/48x48/ef4444/ffffff?text=IPO', github: 'https://github.com/syaddays/ipo', shortDesc: 'A Django-based IPO tracking web app.', tags: ['Django', 'Bootstrap'] },
                 { id: 'project-3', title: 'SkillVault', icon: 'https://placehold.co/48x48/8b5cf6/ffffff?text=SV', github: 'https://github.com/syaddays/skillvault', shortDesc: 'A daily goal tracker built with React.', tags: ['React', 'TypeScript', 'Framer Motion'] },
+                { id: 'project-4', title: 'Customer Churn Prediction', icon: 'https://placehold.co/48x48/34d399/ffffff?text=CP', github: 'https://github.com/syaddays/Customer-Churn-Prediction-Model', shortDesc: 'A model to predict customer churn.', tags: ['Python', 'Machine Learning'] },
+                { id: 'project-5', title: 'Retail Sales Analysis', icon: 'https://placehold.co/48x48/fb923c/ffffff?text=SA', github: 'https://github.com/syaddays/Retail-Sales-Analysis', shortDesc: 'Analyzing retail sales data.', tags: ['Python', 'Data Analysis'] },
+                { id: 'project-6', title: 'LaTeX Resume Tailor', icon: 'https://placehold.co/48x48/9333ea/ffffff?text=LR', github: 'https://github.com/syaddays/latex-resume-tailor', shortDesc: 'A tool to customize LaTeX resumes.', tags: ['Python', 'LaTeX'] },
+                { id: 'project-7', title: 'Code Patterns Website', icon: 'https://placehold.co/48x48/ec4899/ffffff?text=LP', github: 'https://github.com/syaddays/Learncodepattern.github.io', shortDesc: 'A site for learning code patterns.', tags: ['HTML', 'CSS'] },
+                { id: 'project-8', title: 'Vehicle Rental System', icon: 'https://placehold.co/48x48/14b8a6/ffffff?text=VR', github: 'https://github.com/syaddays/Vehicle-Rental-System', shortDesc: 'A rental system built with Java.', tags: ['Java', 'MySQL'] },
             ];
             
             const skillsData = {
-                Languages: [ { name: 'JavaScript', icon: 'https://placehold.co/48x48/f7df1e/000000?text=JS' }, { name: 'HTML5', icon: 'https://placehold.co/48x48/e34f26/ffffff?text=H5' }, { name: 'CSS3', icon: 'https://placehold.co/48x48/1572b6/ffffff?text=C3' } ],
-                Frameworks: [ { name: 'React', icon: 'https://placehold.co/48x48/61dafb/000000?text=R' }, { name: 'Next.js', icon: 'https://placehold.co/48x48/000000/ffffff?text=N' }, { name: 'Vue.js', icon: 'https://placehold.co/48x48/4fc08d/ffffff?text=V' } ],
-                Tools: [ { name: 'Git', icon: 'https://placehold.co/48x48/f05032/ffffff?text=G' }, { name: 'Firebase', icon: 'https://placehold.co/48x48/ffca28/000000?text=F' }, { name: 'TailwindCSS', icon: 'https://placehold.co/48x48/06b6d4/ffffff?text=T' } ]
+                Languages: [
+                    { name: 'JavaScript', icon: 'https://placehold.co/48x48/f7df1e/000000?text=JS' },
+                    { name: 'HTML5', icon: 'https://placehold.co/48x48/e34f26/ffffff?text=H5' },
+                    { name: 'CSS3', icon: 'https://placehold.co/48x48/1572b6/ffffff?text=C3' },
+                    { name: 'Python', icon: 'https://placehold.co/48x48/3776ab/ffffff?text=Py' },
+                    { name: 'Java', icon: 'https://placehold.co/48x48/007396/ffffff?text=J' }
+                ],
+                Frameworks_Libraries: [
+                    { name: 'React', icon: 'https://placehold.co/48x48/61dafb/000000?text=R' },
+                    { name: 'Next.js', icon: 'https://placehold.co/48x48/000000/ffffff?text=N' },
+                    { name: 'Vue.js', icon: 'https://placehold.co/48x48/4fc08d/ffffff?text=V' },
+                    { name: 'Django', icon: 'https://placehold.co/48x48/092e20/ffffff?text=Dj' },
+                    { name: 'Bootstrap', icon: 'https://placehold.co/48x48/7952b3/ffffff?text=B' },
+                    { name: 'Framer Motion', icon: 'https://placehold.co/48x48/0055ff/ffffff?text=FM' }
+                ],
+                Databases_Tools: [
+                    { name: 'MySQL', icon: 'https://placehold.co/48x48/4479a1/ffffff?text=SQL' },
+                    { name: 'Git', icon: 'https://placehold.co/48x48/f05032/ffffff?text=G' },
+                    { name: 'Firebase', icon: 'https://placehold.co/48x48/ffca28/000000?text=F' },
+                    { name: 'TailwindCSS', icon: 'https://placehold.co/48x48/06b6d4/ffffff?text=T' },
+                    { name: 'LaTeX', icon: 'https://placehold.co/48x48/008080/ffffff?text=La' }
+                ],
+                Fields: [
+                    { name: 'Machine Learning', icon: 'https://placehold.co/48x48/f97316/ffffff?text=ML' },
+                    { name: 'Data Analysis', icon: 'https://placehold.co/48x48/10b981/ffffff?text=DA' }
+                ]
             };
 
             function focusWindow(win) { 
@@ -505,6 +559,9 @@
                 'React': 'bg-blue-900 text-blue-300', 'TypeScript': 'bg-sky-900 text-sky-300', 'Framer Motion': 'bg-pink-900 text-pink-300',
                 'HTML': 'bg-red-900 text-red-300', 'CSS': 'bg-indigo-900 text-indigo-300', 'JavaScript': 'bg-yellow-900 text-yellow-300',
                 'Django': 'bg-green-800 text-green-200', 'Bootstrap': 'bg-purple-900 text-purple-300',
+                'Python': 'bg-blue-800 text-blue-200', 'Machine Learning': 'bg-rose-800 text-rose-200', 'Data Analysis': 'bg-amber-800 text-amber-200',
+                'LaTeX': 'bg-teal-800 text-teal-200', 'Java': 'bg-orange-800 text-orange-200', 'MySQL': 'bg-sky-800 text-sky-200',
+                'MERN': 'bg-green-800 text-green-200', 'Node.js': 'bg-gray-700 text-gray-300', 'LSTM': 'bg-purple-900 text-purple-300'
             };
 
             async function displayProjectDetails(project) {
@@ -553,9 +610,7 @@ ${fullMarkdown}`;
                         
                         let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
                         const payload = { contents: chatHistory };
-                        // IMPORTANT: Replace this key with "__GEMINI_API_KEY__" before pushing to GitHub.
-                        // The key is managed by GitHub Actions Secrets for deployment.
-                        const apiKey = "AIzaSyCJ3Kqbl-E6KOVvLDFn0M2TVzqWTtryp_E";
+                        const apiKey = "__GEMINI_API_KEY__";
                         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                         
                         const response = await fetch(apiUrl, {
@@ -612,7 +667,7 @@ ${fullMarkdown}`;
             const skillsContentContainer = aboutSyadWindow.querySelector('#skills-content');
             
             function renderSkills() {
-                skillsContentContainer.innerHTML = `<div class="space-y-4">${Object.keys(skillsData).map(category => `<div><p class="text-sm font-semibold text-gray-300 mb-2 capitalize">${category}</p><div class="flex flex-wrap gap-4">${skillsData[category].map(skill => `<div class="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-md"><img src="${skill.icon}" class="w-5 h-5 rounded-sm"><span class="text-sm">${skill.name}</span></div>`).join('')}</div></div>`).join('')}</div>`;
+                skillsContentContainer.innerHTML = `<div class="space-y-4">${Object.keys(skillsData).map(category => `<div><p class="text-sm font-semibold text-gray-300 mb-2 capitalize">${category.replace(/_/g, ' ')}</p><div class="flex flex-wrap gap-4">${skillsData[category].map(skill => `<div class="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-md"><img src="${skill.icon}" class="w-5 h-5 rounded-sm"><span class="text-sm">${skill.name}</span></div>`).join('')}</div></div>`).join('')}</div>`;
             }
             renderSkills();
 
@@ -648,9 +703,7 @@ ${fullMarkdown}`;
                     const prompt = `You are a friendly and professional AI assistant for Syad Safi's portfolio. Your goal is to answer questions from visitors about his skills, projects, and experience. Be conversational and helpful. Use the provided context to answer questions accurately. If a question is outside the scope of the portfolio, politely decline to answer. \n\nCONTEXT:\n${portfolioContext}\n\nHISTORY:\n${aiChatHistory.map(m => `${m.role}: ${m.parts[0].text}`).join('\n')}\n\nUSER QUESTION: ${userMessage}`;
 
                     const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-                    // IMPORTANT: Replace this key with "__GEMINI_API_KEY__" before pushing to GitHub.
-                    // The key is managed by GitHub Actions Secrets for deployment.
-                    const apiKey = "AIzaSyCJ3Kqbl-E6KOVvLDFn0M2TVzqWTtryp_E";
+                    const apiKey = "__GEMINI_API_KEY__";
                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                     const response = await fetch(apiUrl, {

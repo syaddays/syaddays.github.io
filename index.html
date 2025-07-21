@@ -610,7 +610,7 @@ ${fullMarkdown}`;
                         
                         let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
                         const payload = { contents: chatHistory };
-                        const apiKey = "__GEMINI_API_KEY__";
+                        const apiKey = "AIzaSyCJ3Kqbl-E6KOVvLDFn0M2TVzqWTtryp_E";
                         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                         
                         const response = await fetch(apiUrl, {
@@ -703,7 +703,7 @@ ${fullMarkdown}`;
                     const prompt = `You are a friendly and professional AI assistant for Syad Safi's portfolio. Your goal is to answer questions from visitors about his skills, projects, and experience. Be conversational and helpful. Use the provided context to answer questions accurately. If a question is outside the scope of the portfolio, politely decline to answer. \n\nCONTEXT:\n${portfolioContext}\n\nHISTORY:\n${aiChatHistory.map(m => `${m.role}: ${m.parts[0].text}`).join('\n')}\n\nUSER QUESTION: ${userMessage}`;
 
                     const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-                    const apiKey = "__GEMINI_API_KEY__";
+                    const apiKey = "__GEMINI_API_KEY__"; // Replace with "__GEMINI_API_KEY__" for deployment
                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                     const response = await fetch(apiUrl, {

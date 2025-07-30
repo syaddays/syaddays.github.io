@@ -222,11 +222,15 @@
         /* Responsive Styles */
         @media screen and (max-width: 768px) {
             body {
-                overflow: auto; /* Allow scrolling on mobile */
+                height: 100%;
+                overflow-y: auto;
             }
             #desktop {
-                padding-top: 56px; /* Adjust for taller mobile menu bar */
-                height: auto;
+                display: flex;
+                flex-direction: column;
+                min-height: calc(100vh - 56px);
+                padding-top: 56px;
+                padding-bottom: 70px; /* Space for the fixed dock */
             }
             #menu-bar {
                 height: 56px;
@@ -245,7 +249,8 @@
             .window {
                 position: relative !important; /* Override inline styles */
                 width: 100% !important;
-                height: calc(100vh - 56px - 70px) !important; /* Full height minus menu and dock */
+                flex-grow: 1; /* Allow window to fill space */
+                height: auto !important;
                 top: 0 !important;
                 left: 0 !important;
                 border: none !important;
@@ -261,6 +266,7 @@
                 display: none; /* Hide title bar on mobile */
             }
              #dock {
+                position: fixed; /* Keep dock at the bottom */
                 width: 100%;
                 bottom: 0;
                 left: 0;
@@ -296,7 +302,6 @@
             .projects-body {
                 position: static; /* Override absolute positioning on mobile */
                 flex-direction: column;
-                padding-bottom: 70px; /* Space for the dock */
             }
             #project-list {
                 width: 100%;
@@ -330,7 +335,7 @@
     <div id="desktop">
         <!-- Windows -->
         <div id="projects" class="window" style="width: 750px; height: 500px; top: 5%; left: 5%;"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">Projects</span></div><div class="window-body"><div class="projects-body"><div id="project-list"></div><div id="project-display"></div></div></div></div>
-        <div id="about-syad" class="window" style="width: 500px; height: 400px; top: 10%; left: 45%;"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">About Syad</span></div><div class="window-body"><div class="about-body"><div class="about-tabs"><button class="about-tab active" data-tab="about">About</button><button class="about-tab" data-tab="skills">Skills</button><button class="about-tab" data-tab="publications">Publications</button></div><div id="about-content" class="about-content active"><h2 class="font-bold text-2xl mb-4 text-gray-200">Syad Safi</h2><p class="text-sm text-gray-300 leading-relaxed">Hello! I'm a frontend developer from Pipraun, Bihar, with a passion for building clean, user-friendly, and performant web applications. I thrive on turning complex problems into simple, beautiful, and intuitive designs.</p></div><div id="skills-content" class="about-content"></div><div id="publications-content" class="about-content space-y-4"><a href="https://ijsrem.com/download/student-faculty-hub-using-mern-stack/" target="_blank" class="block bg-black/20 p-4 rounded-lg hover:bg-black/40 transition-colors"><h3 class="font-semibold text-gray-200">Student-Faculty Hub Using MERN Stack</h3><p class="text-xs text-gray-400 mt-1 mb-2">A centralized hub for students and faculty to reduce distractions and improve access to academic resources.</p><div class="flex flex-wrap gap-1.5"><span class="tech-tag bg-green-800 text-green-200">MERN</span><span class="tech-tag bg-blue-900 text-blue-300">React</span><span class="tech-tag bg-gray-700 text-gray-300">Node.js</span></div></a><a href="https://ijsrem.com/download/network-attack-detection-using-long-short-term-memory-lstm/" target="_blank" class="block bg-black/20 p-4 rounded-lg hover:bg-black/40 transition-colors"><h3 class="font-semibold text-gray-200">Network Attack Detection Using LSTM</h3><p class="text-xs text-gray-400 mt-1 mb-2">A deep learning model leveraging LSTM neural networks to detect and classify various network cyber attacks.</p><div class="flex flex-wrap gap-1.5"><span class="tech-tag bg-rose-800 text-rose-200">Machine Learning</span><span class="tech-tag bg-blue-800 text-blue-200">Python</span><span class="tech-tag bg-purple-900 text-purple-300">LSTM</span></div></a></div></div></div></div>
+        <div id="about-syad" class="window" style="width: 500px; height: 400px; top: 10%; left: 45%;"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">About Syad</span></div><div class="window-body"><div class="about-body"><div class="about-tabs"><button class="about-tab active" data-tab="about">About</button><button class="about-tab" data-tab="skills">Skills</button><button class="about-tab" data-tab="publications">Publications</button><button class="about-tab" data-tab="certifications">Certifications</button></div><div id="about-content" class="about-content active"><h2 class="font-bold text-2xl mb-4 text-gray-200">Syad Safi</h2><p class="text-sm text-gray-300 leading-relaxed">I am a passionate developer with a focus on building clean, user-friendly, and performant web applications. I thrive on turning complex problems into simple, beautiful, and intuitive designs, with a strong interest in the intersection of web development and machine learning.</p></div><div id="skills-content" class="about-content"></div><div id="publications-content" class="about-content space-y-4"><a href="https://ijsrem.com/download/student-faculty-hub-using-mern-stack/" target="_blank" class="block bg-black/20 p-4 rounded-lg hover:bg-black/40 transition-colors"><h3 class="font-semibold text-gray-200">Student-Faculty Hub Using MERN Stack</h3><p class="text-xs text-gray-400 mt-1 mb-2">A centralized hub for students and faculty to reduce distractions and improve access to academic resources.</p><div class="flex flex-wrap gap-1.5"><span class="tech-tag bg-green-800 text-green-200">MERN</span><span class="tech-tag bg-blue-900 text-blue-300">React</span><span class="tech-tag bg-gray-700 text-gray-300">Node.js</span></div></a><a href="https://ijsrem.com/download/network-attack-detection-using-long-short-term-memory-lstm/" target="_blank" class="block bg-black/20 p-4 rounded-lg hover:bg-black/40 transition-colors"><h3 class="font-semibold text-gray-200">Network Attack Detection Using LSTM</h3><p class="text-xs text-gray-400 mt-1 mb-2">A deep learning model leveraging LSTM neural networks to detect and classify various network cyber attacks.</p><div class="flex flex-wrap gap-1.5"><span class="tech-tag bg-rose-800 text-rose-200">Machine Learning</span><span class="tech-tag bg-blue-800 text-blue-200">Python</span><span class="tech-tag bg-purple-900 text-purple-300">LSTM</span></div></a></div><div id="certifications-content" class="about-content space-y-4"></div></div></div></div>
         <div id="contact" class="window"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">Contact</span></div><div class="window-body p-6"><h2 class="font-bold text-xl mb-4">Get In Touch</h2><p class="text-sm text-gray-300">Have a project in mind or just want to connect? My inbox is always open.</p><a href="mailto:syadabduldg@gmail.com" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Send Email</a></div></div>
         <div id="ai-assistant" class="window" style="width: 450px; height: 520px; top: 15%; left: 65%;"><div class="title-bar"><div class="title-bar-buttons"><div class="close title-bar-button"></div><div class="minimize title-bar-button"></div><div class="maximize title-bar-button"></div></div><span class="window-title">✨ AI Assistant</span></div><div class="window-body flex flex-col p-0"><div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-4"><div class="chat-message assistant"><p>Hello! I'm Syad's AI assistant. Feel free to ask me about his projects, skills, or experience.</p></div></div><div class="p-4 border-t border-white/10 bg-black/10"><div class="flex gap-2"><input type="text" id="chat-input" class="flex-grow bg-gray-900/50 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" placeholder="Ask a question..."><button id="chat-send" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg></button></div></div></div></div>
     </div>
@@ -391,6 +396,45 @@
                 ]
             };
 
+            const certificationsData = [
+                {
+                    title: 'Postman API Fundamentals Student Expert',
+                    issuer: 'Canvas Credentials (Badgr)',
+                    url: 'https://api.badgr.io/public/assertions/E4AlyjMWQqKU8F48Zgm3hw',
+                    tags: ['Testing', 'API', 'Postman API', 'API Development']
+                },
+                {
+                    title: 'Node.js Essential Training',
+                    issuer: 'LinkedIn',
+                    url: 'https://www.linkedin.com/learning/node-js-essential-training-14888164/learning-the-node-js-basics?u=2113185&lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_certifications_details%3BvIAYQoVKS%2BCzr0jjc8fb5w%3D%3D',
+                    tags: ['Node.js']
+                },
+                {
+                    title: 'AWS Cloud Solutions Architect',
+                    issuer: 'Coursera',
+                    url: 'https://coursera.org/share/a663300a582df7784f434d5ac74b78cf',
+                    tags: ['Solution Architecture', 'Serverless Computing', 'Cloud Security']
+                },
+                {
+                    title: 'Python Basics',
+                    issuer: 'Coursera',
+                    url: 'https://coursera.org/share/56bae0b699e3b0d1ff4424c63c130a59',
+                    tags: ['Computer Programming', 'Data Structures', 'Python Programming']
+                },
+                {
+                    title: 'Thinking Creatively',
+                    issuer: 'LinkedIn',
+                    url: 'https://www.linkedin.com/learning/thinking-creatively?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_certifications_details%3BvIAYQoVKS%2BCzr0jjc8fb5w%3D%3D',
+                    tags: ['Analytical Skills']
+                },
+                {
+                    title: 'Foundations of Project Management',
+                    issuer: 'Coursera',
+                    url: 'https://coursera.org/share/c38e6a5db0cd65a5dd756bba1e87ef22',
+                    tags: ['Project Management Life Cycle', 'Software Project Management']
+                }
+            ];
+
             function focusWindow(win) { 
                 if (window.innerWidth <= 768) return; // No z-index management on mobile
                 if (win) win.style.zIndex = ++highestZIndex; 
@@ -439,12 +483,18 @@
                 }
             }
 
+            // --- Window Initialization & Dragging ---
             document.querySelectorAll('.window').forEach(win => {
                 if (win.classList.contains('active')) focusWindow(win);
                 const titleBar = win.querySelector('.title-bar');
                 
-                // Only enable dragging on desktop
-                if (window.innerWidth > 768) {
+                win.querySelector('.close').addEventListener('click', e => { e.stopPropagation(); closeWindow(win.id); });
+                win.querySelector('.minimize').addEventListener('click', e => { e.stopPropagation(); minimizeWindow(win.id); });
+                win.querySelector('.maximize').addEventListener('click', e => { e.stopPropagation(); toggleMaximize(win); });
+                
+                win.addEventListener('mousedown', () => focusWindow(win));
+
+                if (window.innerWidth > 768 && titleBar) {
                     let isDragging = false, offsetX, offsetY;
                     titleBar.addEventListener('mousedown', e => { 
                         if (e.target.classList.contains('title-bar-button')) return;
@@ -475,12 +525,6 @@
                         titleBar.style.cursor = 'grab'; 
                     });
                 }
-                
-                win.querySelector('.close').addEventListener('click', e => { e.stopPropagation(); closeWindow(win.id); });
-                win.querySelector('.minimize').addEventListener('click', e => { e.stopPropagation(); minimizeWindow(win.id); });
-                win.querySelector('.maximize').addEventListener('click', e => { e.stopPropagation(); toggleMaximize(win); });
-                
-                win.addEventListener('mousedown', () => focusWindow(win));
             });
             
             Object.keys(appData).forEach(appId => {
@@ -562,7 +606,16 @@
                 'Django': 'bg-green-800 text-green-200', 'Bootstrap': 'bg-purple-900 text-purple-300',
                 'Python': 'bg-blue-800 text-blue-200', 'Machine Learning': 'bg-rose-800 text-rose-200', 'Data Analysis': 'bg-amber-800 text-amber-200',
                 'LaTeX': 'bg-teal-800 text-teal-200', 'Java': 'bg-orange-800 text-orange-200', 'MySQL': 'bg-sky-800 text-sky-200',
-                'MERN': 'bg-green-800 text-green-200', 'Node.js': 'bg-gray-700 text-gray-300', 'LSTM': 'bg-purple-900 text-purple-300'
+                'MERN': 'bg-green-800 text-green-200', 'Node.js': 'bg-green-700 text-green-100', 'LSTM': 'bg-purple-900 text-purple-300',
+                'UX Design': 'bg-yellow-800 text-yellow-200', 'Google': 'bg-blue-800 text-blue-200', 'Git': 'bg-red-800 text-red-200',
+                'GitHub': 'bg-black text-white', 'Version Control': 'bg-gray-700 text-gray-300', 'Programming': 'bg-green-800 text-green-200',
+                'AI': 'bg-purple-800 text-purple-200', 'Generative AI': 'bg-fuchsia-800 text-fuchsia-200',
+                'Data Science': 'bg-orange-800 text-orange-200', 'Algorithms': 'bg-cyan-800 text-cyan-200',
+                'IBM': 'bg-blue-700 text-blue-100', 'Quantum Computing': 'bg-indigo-700 text-indigo-100', 'Qiskit': 'bg-gray-600 text-gray-100',
+                'Testing': 'bg-emerald-800 text-emerald-200', 'API': 'bg-sky-700 text-sky-100', 'Postman API': 'bg-orange-600 text-white', 'API Development': 'bg-blue-600 text-white',
+                'Solution Architecture': 'bg-amber-700 text-amber-100', 'Serverless Computing': 'bg-yellow-600 text-yellow-100', 'Cloud Security': 'bg-red-700 text-red-100',
+                'Computer Programming': 'bg-green-600 text-green-100', 'Data Structures': 'bg-cyan-700 text-cyan-100', 'Python Programming': 'bg-blue-700 text-blue-100',
+                'Analytical Skills': 'bg-indigo-600 text-indigo-100', 'Project Management Life Cycle': 'bg-rose-700 text-rose-100', 'Software Project Management': 'bg-pink-700 text-pink-100'
             };
 
             async function displayProjectDetails(project) {
@@ -666,11 +719,25 @@ ${fullMarkdown}`;
             // --- About App Logic ---
             const aboutSyadWindow = document.getElementById('about-syad');
             const skillsContentContainer = aboutSyadWindow.querySelector('#skills-content');
+            const certificationsContentContainer = aboutSyadWindow.querySelector('#certifications-content');
             
             function renderSkills() {
                 skillsContentContainer.innerHTML = `<div class="space-y-4">${Object.keys(skillsData).map(category => `<div><p class="text-sm font-semibold text-gray-300 mb-2 capitalize">${category.replace(/_/g, ' ')}</p><div class="flex flex-wrap gap-4">${skillsData[category].map(skill => `<div class="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-md"><img src="${skill.icon}" class="w-5 h-5 rounded-sm"><span class="text-sm">${skill.name}</span></div>`).join('')}</div></div>`).join('')}</div>`;
             }
+
+            function renderCertifications() {
+                certificationsContentContainer.innerHTML = certificationsData.map(cert => {
+                    const tagsHTML = cert.tags.map(tag => `<span class="tech-tag ${tagColors[tag] || 'bg-gray-700 text-gray-300'}">${tag}</span>`).join('');
+                    return `
+                    <a href="${cert.url}" target="_blank" class="block bg-black/20 p-4 rounded-lg hover:bg-black/40 transition-colors">
+                        <h3 class="font-semibold text-gray-200">${cert.title}</h3>
+                        <p class="text-xs text-gray-400 mt-1 mb-2">Issued by: ${cert.issuer}</p>
+                        <div class="flex flex-wrap gap-1.5">${tagsHTML}</div>
+                    </a>`;
+                }).join('');
+            }
             renderSkills();
+            renderCertifications();
 
             aboutSyadWindow.querySelector('.about-tabs').addEventListener('click', (e) => {
                 if(e.target.classList.contains('about-tab')) {
@@ -688,7 +755,14 @@ ${fullMarkdown}`;
             const chatSendButton = document.getElementById('chat-send');
             let aiChatHistory = [];
 
-            const portfolioContext = `Syad Safi's Projects: ${JSON.stringify(projectData)}. Syad Safi's Skills: ${JSON.stringify(skillsData)}.`;
+            const portfolioContext = `
+                Syad Safi's Projects: ${JSON.stringify(projectData)}. 
+                Syad Safi's Skills: ${JSON.stringify(skillsData)}.
+                Syad Safi's Certifications: ${JSON.stringify(certificationsData)}.
+                Syad Safi's LinkedIn: https://www.linkedin.com/in/syad-safi/
+                Syad Safi's GitHub: https://github.com/syaddays
+                Syad Safi's LeetCode: https://leetcode.com/syaddays/
+            `;
 
             async function handleAIChat() {
                 const userMessage = chatInput.value.trim();

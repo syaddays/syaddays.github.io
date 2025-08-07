@@ -25,16 +25,14 @@ jobs:
         uses: actions/checkout@v4
 
       # Finds the placeholder string in script.js and replaces it with the GitHub secret.
+      # This step will now fail if the secret is not found, making debugging easier.
       - name: Replace API Key 🔑
         run: |
-          # This command will fail gracefully if the secret is not found
           if [ -z "${{ secrets.__GEMINI_API_KEY__ }}" ]; then
-            echo "Secret not found. Skipping API key replacement."
-          else
-            sed -i "s|__GEMINI_API_KEY_PLACEHOLDER__|${{ secrets.__GEMINI_API_KEY__ }}|g" script.js
+            echo "Error: __GEMINI_API_KEY__ secret not found." >&2
+            exit 1
           fi
-        env:
-          API_KEY: ${{ secrets.__GEMINI_API_KEY__ }}
+          sed -i "s|__GEMINI_API_KEY_PLACEHOLDER__|${{ secrets.__GEMINI_API_KEY__ }}|g" script.js
 
       # Deploys the modified files to the gh-pages branch
       - name: Deploy 🚀

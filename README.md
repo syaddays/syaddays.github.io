@@ -13,7 +13,7 @@ A modern, interactive portfolio website designed to look like a macOS desktop in
 
 ## 🚀 Live Demo
 
-Visit the live portfolio: [Your GitHub Pages URL will be here]
+Visit the live portfolio: [](https://syaddays.github.io/)]
 
 ## 🛠️ Technologies Used
 

@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONSTANTS & CACHE ---
-    const GEMINI_API_KEY = "__GEMINI_API_KEY__"; // This is replaced by the GitHub Action
+    const GEMINI_API_KEY = "__GEMINI_API_KEY_PLACEHOLDER__"; // This is replaced by the GitHub Action
     const readmeCache = {};
     const SELECTORS = {
         DESKTOP: 'desktop',
@@ -256,28 +256,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async function displayProjectDetails(project) {
             document.querySelectorAll(SELECTORS.PROJECT_LIST_ITEM).forEach(item => item.classList.toggle('selected', item.dataset.projectId === project.id));
-            projectDisplayContainer.innerHTML = `<div id="gemini-controls" class="p-4 border-b border-white/10 hidden"><button id="summarize-button" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">✨ Summarize Project</button><div id="gemini-summary-container" class="mt-4 hidden"><div id="gemini-summary-content" class="p-4 bg-black/20 rounded-lg text-gray-300 border border-white/10 prose prose-sm prose-invert max-w-none"></div></div></div><div id="readme-content-wrapper" class="readme-content p-6"><div class="flex justify-center items-center h-full"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400"></div></div></div>`;
+            projectDisplayContainer.innerHTML = `<div id="gemini-controls" class="p-4 border-b border-white/10"><button id="summarize-button" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">✨ Summarize with AI</button><div id="gemini-summary-container" class="mt-4 hidden"><div id="gemini-summary-content" class="p-4 bg-black/20 rounded-lg text-gray-300 border border-white/10 prose prose-sm prose-invert max-w-none"></div></div></div><div id="readme-content-wrapper" class="readme-content p-6"><div class="flex justify-center items-center h-full"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400"></div></div></div>`;
             const readmeWrapper = projectDisplayContainer.querySelector('#readme-content-wrapper');
-            const geminiControls = projectDisplayContainer.querySelector('#gemini-controls');
             projectDisplayContainer.querySelector('#summarize-button').addEventListener('click', () => handleProjectSummary(project, projectDisplayContainer));
 
             if (readmeCache[project.id]) {
                 readmeWrapper.innerHTML = marked.parse(readmeCache[project.id]);
-                geminiControls.style.display = 'block';
                 return;
             }
             try {
                 const repoUrl = new URL(project.github);
-                const rawUrl = `https://raw.githubusercontent.com${repoUrl.pathname}/main/README.md`;
-                const response = await fetch(rawUrl);
-                if (!response.ok) throw new Error(`Failed to fetch README: ${response.statusText}`);
-                const markdown = await response.text();
-                readmeCache[project.id] = markdown;
-                readmeWrapper.innerHTML = marked.parse(markdown);
-                geminiControls.style.display = 'block';
+                // Try fetching from 'main' or 'master' branches
+                const branches = ['main', 'master'];
+                let markdown = null;
+                for (const branch of branches) {
+                    const rawUrl = `https://raw.githubusercontent.com${repoUrl.pathname}/${branch}/README.md`;
+                    try {
+                        const response = await fetch(rawUrl);
+                        if (response.ok) {
+                            markdown = await response.text();
+                            break; // Exit loop if successful
+                        }
+                    } catch (e) { /* Ignore fetch error and try next branch */ }
+                }
+                
+                if (markdown) {
+                    readmeCache[project.id] = markdown;
+                    readmeWrapper.innerHTML = marked.parse(markdown);
+                } else {
+                    throw new Error(`Failed to fetch README from common branches.`);
+                }
             } catch (error) {
                 console.error(error);
-                readmeWrapper.innerHTML = `<div class="p-4 text-center text-gray-400">Could not load README.md.</div>`;
+                readmeWrapper.innerHTML = `<div class="p-4 text-center text-gray-400">Could not load README.md for this project.</div>`;
             }
         }
         projectData.forEach(p => {
@@ -292,17 +303,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if(projectData.length > 0) displayProjectDetails(projectData[0]);
     }
 
+    /**
+     * TOKEN-SAVING CHANGE: Instead of sending the full README, we send a much smaller,
+     * pre-processed summary of the project's data. This dramatically reduces input tokens.
+     */
     async function handleProjectSummary(project, container) {
         const summaryContainer = container.querySelector('#gemini-summary-container');
         const summaryContent = container.querySelector('#gemini-summary-content');
         const summarizeButton = container.querySelector('#summarize-button');
+        
         summaryContainer.style.display = 'block';
         summaryContent.innerHTML = '<p>✨ Thinking...</p>';
         summarizeButton.disabled = true;
+        
         try {
-            const fullMarkdown = readmeCache[project.id];
-            if (!fullMarkdown) throw new Error("README not found in cache.");
-            const prompt = `**System Instruction:** You are a technical writer AI. Analyze the following README.md and generate a concise summary in Markdown. Start with a one-sentence overview, followed by a bulleted list titled "**Key Features & Technologies:**".\n\n**README Content:**\n---\n${fullMarkdown}`;
+            // Create a small, token-efficient summary of the project data.
+            const projectInfo = `Project Title: ${project.title}. Description: ${project.shortDesc}. Key Technologies: ${project.tags.join(', ')}.`;
+            
+            // The prompt is now much shorter and more direct.
+            const prompt = `You are a technical writer AI. Based on the following information, write a concise and engaging one-paragraph summary for a portfolio website. Be enthusiastic.\n\n**Project Data:**\n---\n${projectInfo}`;
+            
             const summaryMarkdown = await callGeminiAPI(prompt);
             summaryContent.innerHTML = marked.parse(summaryMarkdown);
         } catch (error) {
@@ -336,22 +356,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initAIAssistant() {
         let aiChatHistory = [];
-        const portfolioContext = `Syad Safi's Projects: ${JSON.stringify(projectData.map(p => ({title: p.title, desc: p.shortDesc, tags: p.tags})))}. Syad Safi's Skills: ${JSON.stringify(skillsData)}.`;
+        // Create a more concise context string to save tokens on every call.
+        const portfolioContext = `Syad Safi's Projects: ${projectData.map(p => `${p.title} (${p.tags.join(', ')})`).join('; ')}. Skills: ${Object.values(skillsData).flat().map(s => s.name).join(', ')}.`;
+
         chatSendButton.addEventListener('click', handleAIChat);
         chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAIChat(); });
+        
         async function handleAIChat() {
             const userMessage = chatInput.value.trim();
             if (!userMessage) return;
+            
             appendChatMessage(userMessage, 'user');
             chatInput.value = '';
             chatSendButton.disabled = true;
             appendChatMessage('...', 'assistant', true);
+
+            /**
+             * TOKEN-SAVING CHANGE: We now use a "sliding window" for chat history.
+             * This keeps the prompt from growing indefinitely by only sending the last
+             * 6 messages (3 pairs of user/assistant turns).
+             */
+            const recentHistory = aiChatHistory.slice(-6); 
+
             try {
-                const prompt = `You are a friendly AI assistant for Syad Safi's portfolio. Answer questions about his skills and projects based on this context. Be conversational. If a question is outside this scope, politely decline. CONTEXT: ${portfolioContext}\n\nHISTORY:\n${aiChatHistory.map(m => `${m.role}: ${m.parts[0].text}`).join('\n')}\n\nUSER QUESTION: ${userMessage}`;
+                const prompt = `You are a friendly AI assistant for Syad Safi's portfolio. Answer questions about his skills and projects based on this context. Be conversational. If a question is outside this scope, politely decline. CONTEXT: ${portfolioContext}\n\nHISTORY:\n${recentHistory.map(m => `${m.role}: ${m.parts[0].text}`).join('\n')}\n\nUSER QUESTION: ${userMessage}`;
+                
                 const assistantResponse = await callGeminiAPI(prompt);
                 updateLastChatMessage(assistantResponse);
+                
+                // Add new messages to the full history
                 aiChatHistory.push({role: 'user', parts: [{text: userMessage}]});
                 aiChatHistory.push({role: 'model', parts: [{text: assistantResponse}]});
+
             } catch (error) {
                 console.error("AI Assistant Error:", error);
                 updateLastChatMessage("I'm sorry, I encountered an error. Please try again later.");

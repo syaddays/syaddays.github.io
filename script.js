@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONSTANTS & CACHE ---
-    const GEMINI_API_KEY = "__GEMINI_API_KEY_PLACEHOLDER__"; // This is replaced by the GitHub Action
+    const GEMINI_API_KEY = "__GEMINI_API_KEY__"; // This is replaced by the GitHub Action
     const readmeCache = {};
     const SELECTORS = {
         DESKTOP: 'desktop',

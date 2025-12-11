@@ -1,6 +1,7 @@
-document.addEventListener('DOMContentLoaded', () => {
+// Script initialized
+(function () {
     // --- CONSTANTS & CACHE ---
-    const GEMINI_API_KEY = "__GEMINI_API_KEY_PLACEHOLDER__"; // This is replaced by the GitHub Action
+    const GROQ_API_KEY = "__GEMINI_API_KEY_PLACEHOLDER__";
     const readmeCache = {};
     const SELECTORS = {
         DESKTOP: 'desktop',
@@ -65,56 +66,59 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatSendButton = document.getElementById(SELECTORS.CHAT_SEND);
     const datetimeElement = document.getElementById(SELECTORS.DATETIME);
 
-    // --- GEMINI API CALL ---
-    async function callGeminiAPI(prompt) {
-        if (GEMINI_API_KEY === "__GEMINI_API_KEY_PLACEHOLDER__") {
-            console.error("Gemini API Key has not been replaced. Please configure the GitHub Action secret.");
-            return "API Key not configured. This is a simulated response. Please check the setup instructions.";
+    // --- API HANDLER ---
+    async function callGroqAPI(messages) {
+        if (!GROQ_API_KEY) {
+            throw new Error("Groq API Key is missing.");
+        }
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${GROQ_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "llama-3.1-8b-instant",
+                messages: messages,
+                temperature: 0.7
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Groq API request failed: ${response.statusText}`);
         }
 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
-        const payload = { contents: [{ parts: [{ text: prompt }] }] };
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                console.error("API request failed:", response.status, await response.text());
-                throw new Error(`API request failed with status ${response.status}`);
-            }
-
-            const result = await response.json();
-            if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
-                return result.candidates[0].content.parts[0].text;
-            } else {
-                console.error("Unexpected API response structure:", result);
-                throw new Error('Unexpected API response structure.');
-            }
-        } catch (error) {
-            console.error("Error calling Gemini API:", error);
-            return "Sorry, I encountered an error while contacting the AI. Please try again later.";
-        }
+        const data = await response.json();
+        return data.choices[0].message.content;
     }
-
     // --- WINDOW MANAGEMENT ---
-    function focusWindow(win) { 
+    function focusWindow(win) {
         if (window.innerWidth <= 768) return;
-        if (win) win.style.zIndex = ++highestZIndex; 
+        const currentZ = parseInt(win.style.zIndex || 0);
+        if (currentZ !== highestZIndex) {
+            win.style.zIndex = ++highestZIndex;
+        }
     }
     function openWindow(windowId) {
         const win = document.getElementById(windowId);
         if (!win) return;
+
         if (window.innerWidth <= 768) {
-            document.querySelectorAll(SELECTORS.WINDOW).forEach(w => w.classList.remove('active'));
+            // Mobile: Single app mode. Close others.
+            document.querySelectorAll(SELECTORS.WINDOW).forEach(w => {
+                if (w.id !== windowId) w.classList.remove('active');
+            });
         }
+
+        if (windowId === 'ai-assistant') {
+            const chatMessages = document.getElementById(SELECTORS.CHAT_MESSAGES);
+            if (chatMessages) setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 0);
+        }
+
         win.classList.add('active');
         win.classList.remove('minimized');
-        updateUI();
         focusWindow(win);
+        updateUI();
     }
     function closeWindow(windowId) {
         const win = document.getElementById(windowId);
@@ -165,41 +169,47 @@ document.addEventListener('DOMContentLoaded', () => {
     function initWindows() {
         document.querySelectorAll(SELECTORS.WINDOW).forEach(win => {
             if (win.classList.contains('active')) focusWindow(win);
-            
+
             win.querySelector(SELECTORS.CLOSE_BUTTON).addEventListener('click', e => { e.stopPropagation(); closeWindow(win.id); });
             win.querySelector(SELECTORS.MINIMIZE_BUTTON).addEventListener('click', e => { e.stopPropagation(); minimizeWindow(win.id); });
             win.querySelector(SELECTORS.MAXIMIZE_BUTTON).addEventListener('click', e => { e.stopPropagation(); toggleMaximize(win); });
-            
+
             win.addEventListener('mousedown', () => focusWindow(win));
 
             const titleBar = win.querySelector(SELECTORS.TITLE_BAR);
             if (window.innerWidth > 768 && titleBar) {
                 let isDragging = false, offsetX, offsetY;
-                titleBar.addEventListener('mousedown', e => { 
+                titleBar.addEventListener('mousedown', e => {
                     if (e.target.classList.contains('title-bar-button')) return;
-                    isDragging = true; 
-                    document.body.classList.add('dragging'); 
-                    focusWindow(win); 
-                    offsetX = e.clientX - win.offsetLeft; 
-                    offsetY = e.clientY - win.offsetTop; 
-                    titleBar.style.cursor = 'grabbing'; 
+                    isDragging = true;
+                    document.body.classList.add('dragging');
+                    win.classList.add('no-transition');
+                    focusWindow(win);
+                    offsetX = e.clientX - win.offsetLeft;
+                    offsetY = e.clientY - win.offsetTop;
+                    titleBar.style.cursor = 'grabbing';
                 });
-                document.addEventListener('mousemove', e => { 
-                    if (isDragging) { 
-                        let newLeft = e.clientX - offsetX; 
-                        let newTop = e.clientY - offsetY; 
-                        const menuBarHeight = 28; 
-                        const visibleMargin = 50; 
-                        newTop = Math.max(menuBarHeight, Math.min(newTop, window.innerHeight - visibleMargin));
-                        newLeft = Math.max(-win.offsetWidth + visibleMargin, Math.min(newLeft, window.innerWidth - visibleMargin));
-                        win.style.left = `${newLeft}px`; 
-                        win.style.top = `${newTop}px`; 
-                    } 
+                document.addEventListener('mousemove', e => {
+                    if (isDragging) {
+                        e.preventDefault();
+                        let newLeft = e.clientX - offsetX;
+                        let newTop = e.clientY - offsetY;
+                        const menuBarHeight = 28;
+                        const dockHeight = 70; // approximate dock area buffer
+
+                        // Strict clamping to keep window ON screen
+                        newTop = Math.max(menuBarHeight, Math.min(newTop, window.innerHeight - win.offsetHeight - dockHeight));
+                        newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - win.offsetWidth));
+
+                        win.style.left = `${newLeft}px`;
+                        win.style.top = `${newTop}px`;
+                    }
                 });
-                document.addEventListener('mouseup', () => { 
-                    isDragging = false; 
-                    document.body.classList.remove('dragging'); 
-                    titleBar.style.cursor = 'grab'; 
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    document.body.classList.remove('dragging');
+                    win.classList.remove('no-transition');
+                    titleBar.style.cursor = 'grab';
                 });
             }
         });
@@ -217,8 +227,19 @@ document.addEventListener('DOMContentLoaded', () => {
             dockIcon.addEventListener('click', () => {
                 const win = document.getElementById(appId);
                 if (!win) return;
-                const isTopWindow = parseInt(win.style.zIndex) === highestZIndex && win.classList.contains('active') && !win.classList.contains('minimized');
-                if (window.innerWidth > 768 && isTopWindow) {
+
+                // Mobile Toggle Logic
+                if (window.innerWidth <= 768) {
+                    if (win.classList.contains('active')) {
+                        closeWindow(appId);
+                    } else {
+                        openWindow(appId);
+                    }
+                    return;
+                }
+
+                const isTopWindow = (parseInt(win.style.zIndex) || 0) === highestZIndex && win.classList.contains('active') && !win.classList.contains('minimized');
+                if (isTopWindow) {
                     minimizeWindow(appId);
                 } else {
                     openWindow(appId);
@@ -226,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             dock.appendChild(dockIcon);
         });
-        
+
         const separator = document.createElement('div');
         separator.className = 'h-3/5 w-px bg-white/20 mx-1';
         dock.appendChild(separator);
@@ -256,9 +277,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async function displayProjectDetails(project) {
             document.querySelectorAll(SELECTORS.PROJECT_LIST_ITEM).forEach(item => item.classList.toggle('selected', item.dataset.projectId === project.id));
-            projectDisplayContainer.innerHTML = `<div id="gemini-controls" class="p-4 border-b border-white/10"><button id="summarize-button" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">✨ Summarize with AI</button><div id="gemini-summary-container" class="mt-4 hidden"><div id="gemini-summary-content" class="p-4 bg-black/20 rounded-lg text-gray-300 border border-white/10 prose prose-sm prose-invert max-w-none"></div></div></div><div id="readme-content-wrapper" class="readme-content p-6"><div class="flex justify-center items-center h-full"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400"></div></div></div>`;
+            projectDisplayContainer.innerHTML = `<div id="readme-content-wrapper" class="readme-content p-6"><div class="flex justify-center items-center h-full"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400"></div></div></div>`;
             const readmeWrapper = projectDisplayContainer.querySelector('#readme-content-wrapper');
-            projectDisplayContainer.querySelector('#summarize-button').addEventListener('click', () => handleProjectSummary(project, projectDisplayContainer));
 
             if (readmeCache[project.id]) {
                 readmeWrapper.innerHTML = marked.parse(readmeCache[project.id]);
@@ -279,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     } catch (e) { /* Ignore fetch error and try next branch */ }
                 }
-                
+
                 if (markdown) {
                     readmeCache[project.id] = markdown;
                     readmeWrapper.innerHTML = marked.parse(markdown);
@@ -288,7 +308,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 console.error(error);
-                readmeWrapper.innerHTML = `<div class="p-4 text-center text-gray-400">Could not load README.md for this project.</div>`;
+                readmeWrapper.innerHTML = `
+                    <div class="p-4 text-center text-gray-400">
+                        <p class="mb-2">Could not load README.md for this project.</p>
+                        <a href="${project.github}" target="_blank" class="text-blue-400 hover:underline">View on GitHub</a>
+                    </div>`;
             }
         }
         projectData.forEach(p => {
@@ -300,38 +324,10 @@ document.addEventListener('DOMContentLoaded', () => {
             entry.addEventListener('click', () => displayProjectDetails(p));
             projectListContainer.appendChild(entry);
         });
-        if(projectData.length > 0) displayProjectDetails(projectData[0]);
+        if (projectData.length > 0) displayProjectDetails(projectData[0]);
     }
 
-    /**
-     * TOKEN-SAVING CHANGE: Instead of sending the full README, we send a much smaller,
-     * pre-processed summary of the project's data. This dramatically reduces input tokens.
-     */
-    async function handleProjectSummary(project, container) {
-        const summaryContainer = container.querySelector('#gemini-summary-container');
-        const summaryContent = container.querySelector('#gemini-summary-content');
-        const summarizeButton = container.querySelector('#summarize-button');
-        
-        summaryContainer.style.display = 'block';
-        summaryContent.innerHTML = '<p>✨ Thinking...</p>';
-        summarizeButton.disabled = true;
-        
-        try {
-            // Create a small, token-efficient summary of the project data.
-            const projectInfo = `Project Title: ${project.title}. Description: ${project.shortDesc}. Key Technologies: ${project.tags.join(', ')}.`;
-            
-            // The prompt is now much shorter and more direct.
-            const prompt = `You are a technical writer AI. Based on the following information, write a concise and engaging one-paragraph summary for a portfolio website. Be enthusiastic.\n\n**Project Data:**\n---\n${projectInfo}`;
-            
-            const summaryMarkdown = await callGeminiAPI(prompt);
-            summaryContent.innerHTML = marked.parse(summaryMarkdown);
-        } catch (error) {
-            console.error('Gemini Summary Error:', error);
-            summaryContent.innerHTML = '<p class="text-red-400">Sorry, I couldn\'t generate a summary at this time.</p>';
-        } finally {
-            summarizeButton.disabled = false;
-        }
-    }
+
 
     function initAboutApp() {
         const aboutSyadWindow = document.getElementById('about-syad');
@@ -344,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return `<a href="${cert.url}" target="_blank" rel="noopener noreferrer" class="block bg-black/20 p-4 rounded-lg hover:bg-black/40 transition-colors"><h3 class="font-semibold text-gray-200">${cert.title}</h3><p class="text-xs text-gray-400 mt-1 mb-2">Issued by: ${cert.issuer}</p><div class="flex flex-wrap gap-1.5">${tagsHTML}</div></a>`;
         }).join('');
         aboutSyadWindow.querySelector(SELECTORS.ABOUT_TABS).addEventListener('click', (e) => {
-            if(e.target.matches(SELECTORS.ABOUT_TAB)) {
+            if (e.target.matches(SELECTORS.ABOUT_TAB)) {
                 const tabName = e.target.dataset.tab;
                 aboutSyadWindow.querySelectorAll(SELECTORS.ABOUT_TAB).forEach(t => t.classList.remove('active'));
                 aboutSyadWindow.querySelectorAll('.about-content').forEach(c => c.classList.remove('active'));
@@ -361,64 +357,79 @@ document.addEventListener('DOMContentLoaded', () => {
 
         chatSendButton.addEventListener('click', handleAIChat);
         chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAIChat(); });
-        
+
         async function handleAIChat() {
             const userMessage = chatInput.value.trim();
             if (!userMessage) return;
-            
+
             appendChatMessage(userMessage, 'user');
             chatInput.value = '';
             chatSendButton.disabled = true;
-            appendChatMessage('...', 'assistant', true);
+            const typingId = 'typing-' + Date.now();
+            appendChatMessage('...', 'assistant', true, typingId);
 
             /**
              * TOKEN-SAVING CHANGE: We now use a "sliding window" for chat history.
              * This keeps the prompt from growing indefinitely by only sending the last
              * 6 messages (3 pairs of user/assistant turns).
              */
-            const recentHistory = aiChatHistory.slice(-6); 
+            // Use the last 6 messages
+            const recentHistory = aiChatHistory.slice(-6);
 
             try {
-                const prompt = `You are a friendly AI assistant for Syad Safi's portfolio. Answer questions about his skills and projects based on this context. Be conversational. If a question is outside this scope, politely decline. CONTEXT: ${portfolioContext}\n\nHISTORY:\n${recentHistory.map(m => `${m.role}: ${m.parts[0].text}`).join('\n')}\n\nUSER QUESTION: ${userMessage}`;
-                
-                const assistantResponse = await callGeminiAPI(prompt);
-                updateLastChatMessage(assistantResponse);
-                
+                // Construct message array for Groq (OpenGL format)
+                const messages = [
+                    { role: "system", content: `You are a friendly AI assistant for Syad Safi's portfolio. Answer questions about his skills and projects based on this context. Be conversational. If a question is outside this scope, politely decline.\n\nCONTEXT: ${portfolioContext}` },
+                    ...recentHistory,
+                    { role: "user", content: userMessage }
+                ];
+
+                const assistantResponse = await callGroqAPI(messages);
+                updateLastChatMessage(assistantResponse, typingId);
+
                 // Add new messages to the full history
-                aiChatHistory.push({role: 'user', parts: [{text: userMessage}]});
-                aiChatHistory.push({role: 'model', parts: [{text: assistantResponse}]});
+                aiChatHistory.push({ role: 'user', content: userMessage });
+                aiChatHistory.push({ role: 'assistant', content: assistantResponse });
 
             } catch (error) {
                 console.error("AI Assistant Error:", error);
-                updateLastChatMessage("I'm sorry, I encountered an error. Please try again later.");
+                updateLastChatMessage(`Error: ${error.message}`, typingId);
             } finally {
                 chatSendButton.disabled = false;
+                if (window.innerWidth > 768) chatInput.focus();
             }
         }
     }
-    
+
     // --- UTILITY FUNCTIONS ---
-    function appendChatMessage(message, sender, isTyping = false) {
+    function appendChatMessage(message, sender, isTyping = false, id = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `chat-message ${sender}`;
         const p = document.createElement('p');
-        p.innerHTML = marked.parse(message);
-        if (isTyping) p.id = 'typing-indicator';
+        p.innerHTML = isTyping ? '<span class="animate-pulse">...</span>' : marked.parse(message);
+        if (id) p.id = id;
         messageDiv.appendChild(p);
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-    function updateLastChatMessage(newMessage) {
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.innerHTML = marked.parse(newMessage);
-            typingIndicator.id = '';
+    function updateLastChatMessage(newMessage, id) {
+        const p = document.getElementById(id);
+        if (p) {
+            p.innerHTML = marked.parse(newMessage);
+            p.id = ''; // Remove ID after update
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
     }
     function updateDateTime() {
         const now = new Date();
         const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' };
         datetimeElement.textContent = now.toLocaleString('en-US', options).replace(',', '');
+    }
+
+    // --- MARKED LIBRARY CHECK ---
+    if (typeof marked === 'undefined') {
+        console.warn('Marked library not loaded. Falling back to plain text.');
+        window.marked = { parse: (text) => text };
     }
 
     // --- MAIN EXECUTION ---
@@ -430,14 +441,18 @@ document.addEventListener('DOMContentLoaded', () => {
         initAIAssistant();
         setInterval(updateDateTime, 1000);
         updateDateTime();
-        if (window.innerWidth > 768) {
-            openWindow('projects');
-            openWindow('about-syad');
-        } else {
-            openWindow('about-syad');
-        }
-        updateUI();
+
+        // Give a slight delay to ensure layout is ready
+        setTimeout(() => {
+            if (window.innerWidth > 768) {
+                openWindow('projects');
+                openWindow('about-syad');
+            } else {
+                openWindow('about-syad');
+            }
+            updateUI();
+        }, 100);
     }
 
     main();
-});
+})();

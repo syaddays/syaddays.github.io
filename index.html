@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Syad Safi - Desktop</title>
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23262626'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='60' font-weight='bold' fill='%23e5e5e5' font-family='Inter, sans-serif'%3ES%3C/text%3E%3C/svg%3E">
-    
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23262626'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='60' font-weight='bold' fill='%23e5e5e5' font-family='Inter, sans-serif'%3ES%3C/text%3E%3C/svg%3E">
+
     <!-- External Scripts & Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Local Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <!-- MENU BAR -->
     <header id="menu-bar">
@@ -33,33 +36,120 @@
     <main id="desktop">
         <!-- Projects Window -->
         <div id="projects" class="window" style="width: 750px; height: 500px; top: 5%; left: 5%;">
-            <div class="title-bar"><div class="title-bar-buttons"><button class="close title-bar-button" aria-label="Close"></button><button class="minimize title-bar-button" aria-label="Minimize"></button><button class="maximize title-bar-button" aria-label="Maximize"></button></div><span class="window-title">Projects</span></div>
-            <div class="window-body"><div class="projects-body"><div id="project-list"></div><div id="project-display"></div></div></div>
+            <div class="title-bar">
+                <div class="title-bar-buttons"><button class="close title-bar-button"
+                        aria-label="Close"></button><button class="minimize title-bar-button"
+                        aria-label="Minimize"></button><button class="maximize title-bar-button"
+                        aria-label="Maximize"></button></div><span class="window-title">Projects</span>
+            </div>
+            <div class="window-body">
+                <div class="projects-body">
+                    <div id="project-list"></div>
+                    <div id="project-display"></div>
+                </div>
+            </div>
         </div>
-        
+
         <!-- About Window -->
         <div id="about-syad" class="window" style="width: 500px; height: 400px; top: 10%; left: 45%;">
-            <div class="title-bar"><div class="title-bar-buttons"><button class="close title-bar-button" aria-label="Close"></button><button class="minimize title-bar-button" aria-label="Minimize"></button><button class="maximize title-bar-button" aria-label="Maximize"></button></div><span class="window-title">About Syad</span></div>
-            <div class="window-body"><div class="about-body"><div class="about-tabs"><button class="about-tab active" data-tab="about">About</button><button class="about-tab" data-tab="skills">Skills</button><button class="about-tab" data-tab="publications">Publications</button><button class="about-tab" data-tab="certifications">Certifications</button></div><div id="about-content" class="about-content active"><h2 class="font-bold text-2xl mb-4 text-gray-200">Syad Safi</h2><p class="text-sm text-gray-300 leading-relaxed">I am a passionate developer with a focus on building clean, user-friendly, and performant web applications. I thrive on turning complex problems into simple, beautiful, and intuitive designs, with a strong interest in the intersection of web development and machine learning.</p></div><div id="skills-content" class="about-content"></div><div id="publications-content" class="about-content space-y-4"><a href="https://ijsrem.com/download/student-faculty-hub-using-mern-stack/" target="_blank" class="block bg-black/20 p-4 rounded-lg hover:bg-black/40 transition-colors"><h3 class="font-semibold text-gray-200">Student-Faculty Hub Using MERN Stack</h3><p class="text-xs text-gray-400 mt-1 mb-2">A centralized hub for students and faculty to reduce distractions and improve access to academic resources.</p><div class="flex flex-wrap gap-1.5"><span class="tech-tag bg-green-800 text-green-200">MERN</span><span class="tech-tag bg-blue-900 text-blue-300">React</span><span class="tech-tag bg-gray-700 text-gray-300">Node.js</span></div></a><a href="https://ijsrem.com/download/network-attack-detection-using-long-short-term-memory-lstm/" target="_blank" class="block bg-black/20 p-4 rounded-lg hover:bg-black/40 transition-colors"><h3 class="font-semibold text-gray-200">Network Attack Detection Using LSTM</h3><p class="text-xs text-gray-400 mt-1 mb-2">A deep learning model leveraging LSTM neural networks to detect and classify various network cyber attacks.</p><div class="flex flex-wrap gap-1.5"><span class="tech-tag bg-rose-800 text-rose-200">Machine Learning</span><span class="tech-tag bg-blue-800 text-blue-200">Python</span><span class="tech-tag bg-purple-900 text-purple-300">LSTM</span></div></a></div><div id="certifications-content" class="about-content space-y-4"></div></div></div>
+            <div class="title-bar">
+                <div class="title-bar-buttons"><button class="close title-bar-button"
+                        aria-label="Close"></button><button class="minimize title-bar-button"
+                        aria-label="Minimize"></button><button class="maximize title-bar-button"
+                        aria-label="Maximize"></button></div><span class="window-title">About Syad</span>
+            </div>
+            <div class="window-body">
+                <div class="about-body">
+                    <div class="about-tabs"><button class="about-tab active" data-tab="about">About</button><button
+                            class="about-tab" data-tab="skills">Skills</button><button class="about-tab"
+                            data-tab="publications">Publications</button><button class="about-tab"
+                            data-tab="certifications">Certifications</button></div>
+                    <div id="about-content" class="about-content active">
+                        <h2 class="font-bold text-2xl mb-4 text-gray-200">Syad Safi</h2>
+                        <p class="text-sm text-gray-300 leading-relaxed">I am a passionate developer with a focus on
+                            building clean, user-friendly, and performant web applications. I thrive on turning complex
+                            problems into simple, beautiful, and intuitive designs, with a strong interest in the
+                            intersection of web development and machine learning.</p>
+                    </div>
+                    <div id="skills-content" class="about-content"></div>
+                    <div id="publications-content" class="about-content space-y-4"><a
+                            href="https://ijsrem.com/download/student-faculty-hub-using-mern-stack/" target="_blank"
+                            class="block bg-black/20 p-4 rounded-lg hover:bg-black/40 transition-colors">
+                            <h3 class="font-semibold text-gray-200">Student-Faculty Hub Using MERN Stack</h3>
+                            <p class="text-xs text-gray-400 mt-1 mb-2">A centralized hub for students and faculty to
+                                reduce distractions and improve access to academic resources.</p>
+                            <div class="flex flex-wrap gap-1.5"><span
+                                    class="tech-tag bg-green-800 text-green-200">MERN</span><span
+                                    class="tech-tag bg-blue-900 text-blue-300">React</span><span
+                                    class="tech-tag bg-gray-700 text-gray-300">Node.js</span></div>
+                        </a><a
+                            href="https://ijsrem.com/download/network-attack-detection-using-long-short-term-memory-lstm/"
+                            target="_blank"
+                            class="block bg-black/20 p-4 rounded-lg hover:bg-black/40 transition-colors">
+                            <h3 class="font-semibold text-gray-200">Network Attack Detection Using LSTM</h3>
+                            <p class="text-xs text-gray-400 mt-1 mb-2">A deep learning model leveraging LSTM neural
+                                networks to detect and classify various network cyber attacks.</p>
+                            <div class="flex flex-wrap gap-1.5"><span class="tech-tag bg-rose-800 text-rose-200">Machine
+                                    Learning</span><span class="tech-tag bg-blue-800 text-blue-200">Python</span><span
+                                    class="tech-tag bg-purple-900 text-purple-300">LSTM</span></div>
+                        </a></div>
+                    <div id="certifications-content" class="about-content space-y-4"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Contact Window -->
         <div id="contact" class="window" style="width: 400px; height: 250px; top: 20%; left: 30%;">
-            <div class="title-bar"><div class="title-bar-buttons"><button class="close title-bar-button" aria-label="Close"></button><button class="minimize title-bar-button" aria-label="Minimize"></button><button class="maximize title-bar-button" aria-label="Maximize"></button></div><span class="window-title">Contact</span></div>
-            <div class="window-body p-6"><h2 class="font-bold text-xl mb-4">Get In Touch</h2><p class="text-sm text-gray-300">Have a project in mind or just want to connect? My inbox is always open.</p><a href="mailto:syadabduldg@gmail.com" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Send Email</a></div>
+            <div class="title-bar">
+                <div class="title-bar-buttons"><button class="close title-bar-button"
+                        aria-label="Close"></button><button class="minimize title-bar-button"
+                        aria-label="Minimize"></button><button class="maximize title-bar-button"
+                        aria-label="Maximize"></button></div><span class="window-title">Contact</span>
+            </div>
+            <div class="window-body p-6">
+                <h2 class="font-bold text-xl mb-4">Get In Touch</h2>
+                <p class="text-sm text-gray-300">Have a project in mind or just want to connect? My inbox is always
+                    open.</p><a href="mailto:syadabduldg@gmail.com"
+                    class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Send
+                    Email</a>
+            </div>
         </div>
 
         <!-- AI Assistant Window -->
         <div id="ai-assistant" class="window" style="width: 450px; height: 520px; top: 15%; left: 65%;">
-            <div class="title-bar"><div class="title-bar-buttons"><button class="close title-bar-button" aria-label="Close"></button><button class="minimize title-bar-button" aria-label="Minimize"></button><button class="maximize title-bar-button" aria-label="Maximize"></button></div><span class="window-title">✨ AI Assistant</span></div>
-            <div class="window-body flex flex-col p-0"><div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-4"><div class="chat-message assistant"><p>Hello! I'm Syad's AI assistant. Feel free to ask me about his projects, skills, or experience.</p></div></div><div class="p-4 border-t border-white/10 bg-black/10"><div class="flex gap-2"><input type="text" id="chat-input" class="flex-grow bg-gray-900/50 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" placeholder="Ask a question..."><button id="chat-send" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg flex items-center justify-center" aria-label="Send Message"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg></button></div></div></div>
+            <div class="title-bar">
+                <div class="title-bar-buttons"><button class="close title-bar-button"
+                        aria-label="Close"></button><button class="minimize title-bar-button"
+                        aria-label="Minimize"></button><button class="maximize title-bar-button"
+                        aria-label="Maximize"></button></div><span class="window-title">✨ AI Assistant</span>
+            </div>
+            <div class="window-body flex flex-col p-0">
+                <div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-4">
+                    <div class="chat-message assistant">
+                        <p>Hello! I'm Syad's AI assistant. Feel free to ask me about his projects, skills, or
+                            experience.</p>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-white/10 bg-black/10">
+                    <div class="flex gap-2"><input type="text" id="chat-input"
+                            class="flex-grow bg-gray-900/50 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                            placeholder="Ask a question..."><button id="chat-send"
+                            class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg flex items-center justify-center"
+                            aria-label="Send Message"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16">
+                                <path
+                                    d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z" />
+                            </svg></button></div>
+                </div>
+            </div>
         </div>
     </main>
-    
+
     <!-- DOCK -->
     <footer id="dock"></footer>
 
     <!-- Local Script -->
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
 </body>
+
 </html>

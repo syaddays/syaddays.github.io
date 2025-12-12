@@ -28,7 +28,7 @@ jobs:
       # This step will now fail if the secret is not found, making debugging easier.
       - name: Replace API Key 🔑
         run: |
-          if [ -z "${{ secrets.__GEMINI_API_KEY__ }}" ]; then
+          if [ -z "${{ secrets.GROQ_API_KEY }}" ]; then
             echo "Error: __GEMINI_API_KEY__ secret not found." >&2
             exit 1
           fi

@@ -1,7 +1,7 @@
 // Script initialized
 (function () {
     // --- CONSTANTS & CACHE ---
-    const GROQ_API_KEY = "__GEMINI_API_KEY_PLACEHOLDER__";
+    const GROQ_API_KEY = "__GEMINI_API_KEY__";
     const readmeCache = {};
     const SELECTORS = {
         DESKTOP: 'desktop',
